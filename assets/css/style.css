@@ -241,6 +241,17 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .video{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--rule);background:var(--field);overflow:hidden}
 .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
 
+/* Media placeholders — hidden until real assets arrive */
+figure:has(.plate__tag){display:none}
+
+/* About intro — portrait beside bio; frame sized to the image (no crop) */
+.about-lede{display:grid;gap:clamp(1.5rem,4vw,2.5rem);align-items:start;margin-top:clamp(1.5rem,4vw,2.5rem)}
+.about-lede .portrait{margin:0}
+.about-lede .portrait img{display:block;width:100%;height:auto;border:1px solid var(--rule)}
+@media (min-width:760px){
+  .about-lede{grid-template-columns:minmax(0,2fr) minmax(0,3fr);column-gap:clamp(2rem,5vw,4rem)}
+}
+
 /* ---- Footer ------------------------------------------------------------ */
 .site-footer{border-top:1px solid var(--rule);margin-top:clamp(3rem,8vw,6rem)}
 .site-footer__row{display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:space-between;padding-block:2.5rem}
