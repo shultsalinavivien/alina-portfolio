@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>From Garden Tradition to Public Feeling</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg: #071311;
+      --bg-soft: #0d1b18;
+      --text: #f3eee3;
+      --muted: rgba(243, 238, 227, 0.72);
+      --muted-2: rgba(243, 238, 227, 0.48);
+      --panel: rgba(255,255,255,0.045);
+      --panel-2: rgba(255,255,255,0.03);
+      --border: rgba(255,255,255,0.08);
+      --shadow: rgba(0,0,0,0.34);
+      --gold: #dfc792;
+      --rose: #c96f6f;
+      --sand: #d8b26e;
+      --moss: #7f8b52;
+      --violet: #7c6ccf;
+      --sun: #d9b65d;
+      --blue: #6f87c9;
+      --apricot: #d78c5f;
+      --sage: #5e9b7b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at top, rgba(223,199,146,0.06), transparent 26%),
+        linear-gradient(180deg, #071311 0%, #081514 45%, #071311 100%);
+      color: var(--text);
+      font-family: Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    .intro {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 48px 24px;
+      text-align: center;
+    }
+
+    .intro__inner {
+      width: min(920px, 100%);
+    }
+
+    .eyebrow,
+    .section-kicker,
+    .map-panel__kicker {
+      display: inline-block;
+      margin-bottom: 14px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .intro h1 {
+      font-size: clamp(34px, 7vw, 76px);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+      margin-bottom: 18px;
+      font-weight: 700;
+    }
+
+    .intro p {
+      max-width: 760px;
+      margin: 0 auto;
+      font-size: clamp(16px, 2vw, 21px);
+      line-height: 1.75;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .gallery {
+      width: min(1240px, 100%);
+      margin: 0 auto;
+      padding: 0 24px 18vh;
+      display: grid;
+      row-gap: 72px;
+    }
+
+    .block {
+      display: grid;
+      justify-items: center;
+    }
+
+    .image-block,
+    .text-block,
+    .flower-block,
+    .info-block,
+    .chart-block {
+      align-content: center;
+    }
+
+    .image-block {
+      min-height: 68vh;
+    }
+
+    .text-block {
+      min-height: 36vh;
+    }
+
+    .flower-block {
+      min-height: 8vh;
+    }
+
+    .info-block,
+    .chart-block {
+      min-height: 78vh;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(70px);
+      filter: blur(8px);
+      transition:
+        opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: opacity, transform, filter;
+    }
+
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+
+    .image-panel {
+      width: min(78vw, 820px);
+      max-width: 100%;
+      border-radius: 28px;
+      overflow: hidden;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow:
+        0 22px 64px var(--shadow),
+        0 0 0 1px rgba(255,255,255,0.02) inset;
+    }
+
+    .image-panel img {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .image-interlude {
+      min-height: 64vh;
+      display: grid;
+      place-items: center;
+      padding: 12px 24px;
+    }
+
+    .image-interlude__inner {
+      width: min(980px, 100%);
+      border-radius: 30px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      box-shadow:
+        0 24px 72px var(--shadow),
+        0 0 0 1px rgba(255,255,255,0.02) inset;
+    }
+
+    .image-interlude__inner img {
+      display: block;
+      width: 100%;
+      height: min(72vh, 780px);
+      object-fit: cover;
+    }
+
+    .text-panel {
+      width: min(820px, 100%);
+      text-align: center;
+      padding: 0 8px;
+    }
+
+    .text-panel p {
+      font-size: clamp(17px, 1.9vw, 28px);
+      line-height: 1.52;
+      letter-spacing: -0.012em;
+      text-wrap: balance;
+      color: var(--text);
+      font-weight: 400;
+    }
+
+    .info-panel,
+    .chart-panel,
+    .map-panel,
+    .chapter-columns__inner {
+      width: min(1120px, 100%);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.028));
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 34px;
+      box-shadow:
+        0 24px 72px var(--shadow),
+        0 0 0 1px rgba(255,255,255,0.02) inset;
+      backdrop-filter: blur(8px);
+    }
+
+    .chart-panel--ranking {
+      padding-top: 40px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .info-card {
+      background: var(--panel-2);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 22px;
+      padding: 28px 18px;
+      text-align: center;
+    }
+
+    .info-number {
+      font-size: clamp(30px, 4.5vw, 58px);
+      line-height: 1;
+      margin-bottom: 10px;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .info-label {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .chart-title {
+      text-align: center;
+      font-size: clamp(24px, 2.8vw, 38px);
+      margin-bottom: 12px;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      font-weight: 700;
+    }
+
+    .chart-subtitle {
+      width: min(760px, 100%);
+      margin: 0 auto 28px auto;
+      text-align: center;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.65;
+      font-weight: 400;
+    }
+
+    .rank-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 12px;
+    }
+
+    .rank-tile {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.025));
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 24px;
+      padding: 18px 18px 20px 18px;
+      min-height: 195px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+    }
+
+    .rank-tile__header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .rank-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(223,199,146,0.12);
+      border: 1px solid rgba(223,199,146,0.22);
+      color: var(--gold);
+      font-size: 15px;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .rank-meta {
+      text-align: right;
+    }
+
+    .rank-country {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .rank-score {
+      font-size: 30px;
+      line-height: 1;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .rank-name {
+      font-size: 19px;
+      line-height: 1.32;
+      margin-bottom: 16px;
+      min-height: 52px;
+      font-weight: 500;
+    }
+
+    .rank-stars {
+      margin-bottom: 14px;
+      opacity: 0.98;
+    }
+
+    .rank-bar-wrap {
+      margin-top: auto;
+    }
+
+    .rank-bar {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+
+    .rank-bar span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #ceb073 0%, #f2d38b 100%);
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 480px !important;
+    }
+
+    /* Chapters */
+    .chapter-divider {
+      min-height: 42vh;
+      display: grid;
+      place-items: center;
+      padding: 48px 24px 12px;
+    }
+
+    .chapter-divider__inner {
+      width: min(1120px, 100%);
+      text-align: center;
+      padding: 32px 16px;
+    }
+
+    .chapter-divider__number {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .chapter-divider__title {
+      font-size: clamp(34px, 5vw, 72px);
+      line-height: 0.98;
+      letter-spacing: -0.05em;
+      margin-bottom: 14px;
+      font-weight: 700;
+    }
+
+    .chapter-divider__subtitle {
+      width: min(760px, 100%);
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .chapter-lead {
+      min-height: 34vh;
+      display: grid;
+      place-items: center;
+      padding: 0 24px;
+    }
+
+    .chapter-lead__inner {
+      width: min(960px, 100%);
+      text-align: center;
+    }
+
+    .chapter-lead__title {
+      font-size: clamp(24px, 3vw, 42px);
+      line-height: 1.08;
+      margin-bottom: 16px;
+      letter-spacing: -0.04em;
+      font-weight: 700;
+    }
+
+    .chapter-lead__text {
+      width: min(760px, 100%);
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.75;
+    }
+
+    .chapter-columns {
+      min-height: 52vh;
+      display: grid;
+      place-items: center;
+      padding: 0 24px;
+    }
+
+    .chapter-columns__title {
+      font-size: clamp(24px, 3vw, 42px);
+      line-height: 1.08;
+      letter-spacing: -0.04em;
+      margin-bottom: 22px;
+      font-weight: 700;
+    }
+
+    .chapter-columns__text {
+      column-count: 3;
+      column-gap: 28px;
+    }
+
+    .chapter-columns__text p {
+      break-inside: avoid;
+      margin: 0 0 16px 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.78;
+      font-weight: 400;
+    }
+
+    /* Scrolly map */
+    .scrolly-section {
+      width: 100%;
+    }
+
+    .scrolly-layout {
+      width: min(1240px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+      gap: 36px;
+      align-items: start;
+      padding: 0 24px;
+    }
+
+    .scrolly-heading {
+      font-size: clamp(28px, 3vw, 44px);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      margin-bottom: 24px;
+      font-weight: 700;
+    }
+
+    .scrolly-steps {
+      display: grid;
+      gap: 22px;
+      padding-bottom: 20vh;
+    }
+
+    .scrolly-step {
+      min-height: 52vh;
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 16px;
+      align-items: start;
+      opacity: 0.35;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .scrolly-step.is-active {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .scrolly-step__index {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+    }
+
+    .scrolly-step.is-active .scrolly-step__index {
+      background: rgba(223,199,146,0.12);
+      border-color: rgba(223,199,146,0.26);
+      color: var(--gold);
+    }
+
+    .scrolly-step__title {
+      font-size: 28px;
+      margin-bottom: 10px;
+      line-height: 1;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .scrolly-step__content p {
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.68;
+    }
+
+    .scrolly-sticky {
+      position: sticky;
+      top: 7vh;
+      align-self: start;
+      height: 86vh;
+      display: flex;
+      align-items: center;
+    }
+
+    .map-panel--sticky {
+      width: 100%;
+      padding: 22px;
+    }
+
+    .map-panel__header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .map-panel__title {
+      font-size: clamp(28px, 3vw, 42px);
+      line-height: 1;
+      font-weight: 700;
+    }
+
+    .map-panel__tools {
+      display: flex;
+      flex-direction: column;
+      align-items: end;
+      gap: 12px;
+    }
+
+    .country-toggle {
+      display: inline-flex;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .country-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+    }
+
+    .country-btn:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .country-btn.is-active {
+      background: rgba(223,199,146,0.14);
+      color: var(--gold);
+      box-shadow: inset 0 0 0 1px rgba(223,199,146,0.18);
+    }
+
+    .map-panel__legend {
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      text-align: right;
+    }
+
+    #map {
+      width: 100%;
+      height: 68vh;
+      min-height: 560px;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .map-caption {
+      margin-top: 16px;
+      padding: 18px 18px 16px 18px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .map-caption__title {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted-2);
+      margin-bottom: 8px;
+    }
+
+    .map-caption p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.68;
+      margin: 0;
+    }
+
+    .leaflet-control-attribution {
+      font-size: 10px;
+      background: rgba(8, 20, 18, 0.8) !important;
+      color: rgba(243,238,227,0.8) !important;
+    }
+
+    .outro {
+      min-height: 34vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 1100px) {
+      .rank-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .chapter-columns__text {
+        column-count: 2;
+      }
+
+      .scrolly-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .scrolly-sticky {
+        position: relative;
+        top: auto;
+        height: auto;
+      }
+
+      #map {
+        height: 62vh;
+        min-height: 460px;
+      }
+
+      .scrolly-step {
+        min-height: 34vh;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .gallery {
+        row-gap: 52px;
+      }
+
+      .image-block {
+        min-height: 52vh;
+      }
+
+      .text-block {
+        min-height: 28vh;
+      }
+
+      .flower-block {
+        min-height: 6vh;
+      }
+
+      .image-panel {
+        width: min(92vw, 820px);
+        border-radius: 20px;
+      }
+
+      .flower-panel img {
+        width: min(20px, 6vw);
+      }
+
+      .text-panel {
+        width: min(92vw, 680px);
+      }
+
+      .text-panel p {
+        font-size: clamp(14px, 3.8vw, 21px);
+        line-height: 1.56;
+      }
+
+      .info-grid,
+      .rank-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chapter-columns__text {
+        column-count: 1;
+      }
+
+      .chapter-columns__inner,
+      .info-panel,
+      .chart-panel,
+      .map-panel {
+        padding: 24px 20px;
+      }
+
+      canvas {
+        height: 360px !important;
+      }
+
+      #map {
+        min-height: 400px;
+        height: 54vh;
+      }
+
+      .map-panel__header {
+        flex-direction: column;
+        align-items: start;
+      }
+
+      .map-panel__tools {
+        align-items: start;
+      }
+
+      .map-panel__legend {
+        text-align: left;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      .reveal {
+        opacity: 1;
+        transform: none;
+        filter: none;
+        transition: none;
+      }
+
+      .scrolly-step {
+        opacity: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="gallery">
+    
+    
+    <section class="chapter-divider reveal">
+      <div class="chapter-divider__inner">
+        <div class="chapter-divider__number">Chapter 1</div>
+        <h2 class="chapter-divider__title">Garden Traditions</h2>
+        <p class="chapter-divider__subtitle">From formal order to picturesque atmosphere</p>
+      </div>
+    </section>
+    
+    <section class="chapter-columns reveal">
+      <div class="chapter-columns__inner">
+        <div class="section-kicker">Historical Prelude</div>
+        <h3 class="chapter-columns__title">Two influential models of landscape culture</h3>
+        <div class="chapter-columns__text">
+          <p>Gardens are not merely ornamental settings. Historically, they have functioned as cultural instruments through which societies projected ideas of power, taste, order, nature, and the proper relationship between the human subject and the landscape.</p><p>In continental Europe, the French formal garden established one of the most influential models of designed nature. Its spatial language privileged axial composition, symmetry, controlled vegetation, and the legible organization of views. It made landscape appear disciplined, theatrical, and politically composed.</p><p>In Britain, the English landscape garden emerged partly in reaction to that rigidity. Rather than emphasizing strict geometry, it cultivated scenic sequence, winding movement, irregular planting, and a carefully designed appearance of natural freedom. It proposed not domination over nature, but an idealized countryside to be experienced emotionally through movement.</p><p>These two traditions are especially relevant to compare because they represent not only different aesthetic styles, but different environmental imaginaries. One privileges control and legibility; the other stages atmosphere, discovery, and picturesque unfolding.</p>
+        </div>
+      </div>
+    </section>
+    
+    <section class="image-interlude reveal">
+      <div class="image-interlude__inner">
+        <img src="https://i.pinimg.com/1200x/ae/fb/6c/aefb6ce1d0f1e0f95e34273bfdbc1e2a.jpg" alt="French garden painting" loading="lazy" decoding="async">
+      </div>
+    </section>
+    
+    <section class="chapter-divider reveal">
+      <div class="chapter-divider__inner">
+        <div class="chapter-divider__number">Chapter 2</div>
+        <h2 class="chapter-divider__title">Research Question</h2>
+        <p class="chapter-divider__subtitle">Can historical garden cultures still be detected in contemporary public feeling?</p>
+      </div>
+    </section>
+    
+    <section class="chapter-lead reveal">
+      <div class="chapter-lead__inner">
+        <div class="section-kicker">Why this study</div>
+        <h3 class="chapter-lead__title">From landscape history to digital perception</h3>
+        <p class="chapter-lead__text">This project asks whether inherited garden traditions remain legible not only in spatial form, but also in the language visitors use to describe their experience today.</p>
+      </div>
+    </section>
+    
+    <section class="chapter-columns reveal">
+      <div class="chapter-columns__inner">
+        <div class="section-kicker">Conceptual Frame</div>
+        <h3 class="chapter-columns__title">Reading gardens through reviews</h3>
+        <div class="chapter-columns__text">
+          <p>Rather than relying only on plans, archival texts, or visual comparison, the study turns to Google Maps reviews as a contemporary archive of everyday interpretation. These short texts register delight, comfort, surprise, trust, disappointment, and atmosphere in ordinary language.</p><p>The core proposition of the project is that landscape traditions may survive not only as formal design genealogies, but as affective regimes of perception. In other words, gardens can be studied not only as compositions of paths, vegetation, and artworks, but also as environments that generate recognizable emotional signatures.</p><p>Art gardens are particularly suitable for this comparison because they combine landscape design, curatorial framing, movement, and sensory expectation. Visitors do not only encounter nature in them; they encounter atmosphere, sequence, symbolism, and surprise.</p><p>The goal, therefore, is not to prove fixed national essences, but to explore whether historically distinct design cultures continue to resonate in public discourse.</p>
+        </div>
+      </div>
+    </section>
+    
+    <section class="image-interlude reveal">
+      <div class="image-interlude__inner">
+        <img src="https://i.pinimg.com/1200x/19/d9/43/19d9437d77a6b86e343a33feabb59fc1.jpg" alt="Garden perspective" loading="lazy" decoding="async">
+      </div>
+    </section>
+    
+    <section class="chapter-divider reveal">
+      <div class="chapter-divider__inner">
+        <div class="chapter-divider__number">Chapter 3</div>
+        <h2 class="chapter-divider__title">Dataset and Method</h2>
+        <p class="chapter-divider__subtitle">Building an affective reading of gardens from public text</p>
+      </div>
+    </section>
+    
+<section class="block info-block reveal">
+  <div class="info-panel">
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-number">12</div>
+        <div class="info-label">Selected gardens</div>
+      </div>
+      <div class="info-card">
+        <div class="info-number">20,414</div>
+        <div class="info-label">Google reviews</div>
+      </div>
+      <div class="info-card">
+        <div class="info-number">2</div>
+        <div class="info-label">Countries</div>
+      </div>
+      <div class="info-card">
+        <div class="info-number">8</div>
+        <div class="info-label">Emotion layers</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+    <section class="chapter-columns reveal">
+      <div class="chapter-columns__inner">
+        <div class="section-kicker">Methodological Note</div>
+        <h3 class="chapter-columns__title">How the analysis works</h3>
+        <div class="chapter-columns__text">
+          <p>The project uses a lexicon-based NLP workflow. After collecting reviews for selected art gardens in France and the United Kingdom, the texts are cleaned, tokenized, and matched to eight emotional categories: anger, anticipation, disgust, fear, joy, sadness, surprise, and trust.</p><p>Each review contributes emotional signals that are then aggregated by site. This produces a comparable profile for each garden and makes it possible to compare emotional tendencies both at the level of individual locations and at the level of national groups.</p><p>This method does not claim to recover the full psychological depth of subjective experience. Rather, it offers a consistent comparative framework for tracing large-scale patterns in public emotional discourse.</p><p>The resulting dataset should therefore be read as evidence of how gardens are described and valued collectively, not as a direct measurement of internal emotional states.</p>
+        </div>
+      </div>
+    </section>
+    
+    <section class="image-interlude reveal">
+      <div class="image-interlude__inner">
+        <img src="https://i.pinimg.com/1200x/fd/6f/50/fd6f508f66caa3c345b2f848343872c7.jpg" alt="Formal garden composition" loading="lazy" decoding="async">
+      </div>
+    </section>
+    
+    <section class="chapter-divider reveal">
+      <div class="chapter-divider__inner">
+        <div class="chapter-divider__number">Chapter 4</div>
+        <h2 class="chapter-divider__title">Public Evaluation</h2>
+        <p class="chapter-divider__subtitle">The explicit layer of judgement</p>
+      </div>
+    </section>
+    
+<section class="block chart-block reveal">
+  <div class="chart-panel chart-panel--ranking">
+    <div class="section-kicker">Public evaluation</div>
+    <div class="chart-title">Which gardens are most highly rated?</div>
+    <div class="chart-subtitle">
+      Ratings provide the most explicit layer of public judgement. Before turning to deeper emotional structure,
+      the project first maps which places receive the strongest overall approval.
+    </div>
+    <div class="rank-grid">
+      
+    <article class="rank-tile">
+      <div class="rank-tile__header">
+        <div class="rank-badge">Ⅰ</div>
+        <div class="rank-meta">
+          <div class="rank-country">United Kingdom</div>
+          <div class="rank-score">4.8</div>
+        </div>
+      </div>
+      <div class="rank-name">Bodnant Garden - National Trust</div>
+      <div class="rank-stars"><svg width="140" height="28" viewBox="0 0 140 28" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><defs><clipPath id="clip-rating-0"><rect x="0" y="0" width="134.4" height="28"/></clipPath></defs><g clip-path="url(#clip-rating-0)"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g></g></svg></div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar"><span style="width:96.0%"></span></div>
+      </div>
+    </article>
+    
+    <article class="rank-tile">
+      <div class="rank-tile__header">
+        <div class="rank-badge">Ⅱ</div>
+        <div class="rank-meta">
+          <div class="rank-country">United Kingdom</div>
+          <div class="rank-score">4.7</div>
+        </div>
+      </div>
+      <div class="rank-name">Cotswold Sculpture Park</div>
+      <div class="rank-stars"><svg width="140" height="28" viewBox="0 0 140 28" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><defs><clipPath id="clip-rating-1"><rect x="0" y="0" width="131.6" height="28"/></clipPath></defs><g clip-path="url(#clip-rating-1)"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g></g></svg></div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar"><span style="width:94.0%"></span></div>
+      </div>
+    </article>
+    
+    <article class="rank-tile">
+      <div class="rank-tile__header">
+        <div class="rank-badge">Ⅲ</div>
+        <div class="rank-meta">
+          <div class="rank-country">United Kingdom</div>
+          <div class="rank-score">4.7</div>
+        </div>
+      </div>
+      <div class="rank-name">Tremenheere Sculpture Gardens</div>
+      <div class="rank-stars"><svg width="140" height="28" viewBox="0 0 140 28" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><defs><clipPath id="clip-rating-2"><rect x="0" y="0" width="131.6" height="28"/></clipPath></defs><g clip-path="url(#clip-rating-2)"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g></g></svg></div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar"><span style="width:94.0%"></span></div>
+      </div>
+    </article>
+    
+    <article class="rank-tile">
+      <div class="rank-tile__header">
+        <div class="rank-badge">04</div>
+        <div class="rank-meta">
+          <div class="rank-country">France</div>
+          <div class="rank-score">4.7</div>
+        </div>
+      </div>
+      <div class="rank-name">Musée Rodin</div>
+      <div class="rank-stars"><svg width="140" height="28" viewBox="0 0 140 28" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><defs><clipPath id="clip-rating-3"><rect x="0" y="0" width="131.6" height="28"/></clipPath></defs><g clip-path="url(#clip-rating-3)"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g></g></svg></div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar"><span style="width:94.0%"></span></div>
+      </div>
+    </article>
+    
+    <article class="rank-tile">
+      <div class="rank-tile__header">
+        <div class="rank-badge">05</div>
+        <div class="rank-meta">
+          <div class="rank-country">United Kingdom</div>
+          <div class="rank-score">4.6</div>
+        </div>
+      </div>
+      <div class="rank-name">Terence Coventry Sculpture Park</div>
+      <div class="rank-stars"><svg width="140" height="28" viewBox="0 0 140 28" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><defs><clipPath id="clip-rating-4"><rect x="0" y="0" width="128.79999999999998" height="28"/></clipPath></defs><g clip-path="url(#clip-rating-4)"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g></g></svg></div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar"><span style="width:92.0%"></span></div>
+      </div>
+    </article>
+    
+    <article class="rank-tile">
+      <div class="rank-tile__header">
+        <div class="rank-badge">06</div>
+        <div class="rank-meta">
+          <div class="rank-country">France</div>
+          <div class="rank-score">4.6</div>
+        </div>
+      </div>
+      <div class="rank-name">Arboretum de la Tuillière</div>
+      <div class="rank-stars"><svg width="140" height="28" viewBox="0 0 140 28" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><defs><clipPath id="clip-rating-5"><rect x="0" y="0" width="128.79999999999998" height="28"/></clipPath></defs><g clip-path="url(#clip-rating-5)"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g></g></svg></div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar"><span style="width:92.0%"></span></div>
+      </div>
+    </article>
+    
+    <article class="rank-tile">
+      <div class="rank-tile__header">
+        <div class="rank-badge">07</div>
+        <div class="rank-meta">
+          <div class="rank-country">France</div>
+          <div class="rank-score">4.6</div>
+        </div>
+      </div>
+      <div class="rank-name">Parc Monceau</div>
+      <div class="rank-stars"><svg width="140" height="28" viewBox="0 0 140 28" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><defs><clipPath id="clip-rating-6"><rect x="0" y="0" width="128.79999999999998" height="28"/></clipPath></defs><g clip-path="url(#clip-rating-6)"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g></g></svg></div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar"><span style="width:92.0%"></span></div>
+      </div>
+    </article>
+    
+    <article class="rank-tile">
+      <div class="rank-tile__header">
+        <div class="rank-badge">08</div>
+        <div class="rank-meta">
+          <div class="rank-country">France</div>
+          <div class="rank-score">4.5</div>
+        </div>
+      </div>
+      <div class="rank-name">Ile Art Malans</div>
+      <div class="rank-stars"><svg width="140" height="28" viewBox="0 0 140 28" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><defs><clipPath id="clip-rating-7"><rect x="0" y="0" width="126.0" height="28"/></clipPath></defs><g clip-path="url(#clip-rating-7)"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g></g></svg></div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar"><span style="width:90.0%"></span></div>
+      </div>
+    </article>
+    
+    <article class="rank-tile">
+      <div class="rank-tile__header">
+        <div class="rank-badge">09</div>
+        <div class="rank-meta">
+          <div class="rank-country">United Kingdom</div>
+          <div class="rank-score">4.5</div>
+        </div>
+      </div>
+      <div class="rank-name">Tate Modern Garden</div>
+      <div class="rank-stars"><svg width="140" height="28" viewBox="0 0 140 28" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><defs><clipPath id="clip-rating-8"><rect x="0" y="0" width="126.0" height="28"/></clipPath></defs><g clip-path="url(#clip-rating-8)"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g></g></svg></div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar"><span style="width:90.0%"></span></div>
+      </div>
+    </article>
+    
+    <article class="rank-tile">
+      <div class="rank-tile__header">
+        <div class="rank-badge">10</div>
+        <div class="rank-meta">
+          <div class="rank-country">France</div>
+          <div class="rank-score">4.4</div>
+        </div>
+      </div>
+      <div class="rank-name">Parc de Sculptures Monumentales Teillé-Mouzeil</div>
+      <div class="rank-stars"><svg width="140" height="28" viewBox="0 0 140 28" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><defs><clipPath id="clip-rating-9"><rect x="0" y="0" width="123.20000000000002" height="28"/></clipPath></defs><g clip-path="url(#clip-rating-9)"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g></g></svg></div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar"><span style="width:88.0%"></span></div>
+      </div>
+    </article>
+    
+    <article class="rank-tile">
+      <div class="rank-tile__header">
+        <div class="rank-badge">11</div>
+        <div class="rank-meta">
+          <div class="rank-country">France</div>
+          <div class="rank-score">4.4</div>
+        </div>
+      </div>
+      <div class="rank-name">Prés Fichaux Garden</div>
+      <div class="rank-stars"><svg width="140" height="28" viewBox="0 0 140 28" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><defs><clipPath id="clip-rating-10"><rect x="0" y="0" width="123.20000000000002" height="28"/></clipPath></defs><g clip-path="url(#clip-rating-10)"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g></g></svg></div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar"><span style="width:88.0%"></span></div>
+      </div>
+    </article>
+    
+    <article class="rank-tile">
+      <div class="rank-tile__header">
+        <div class="rank-badge">12</div>
+        <div class="rank-meta">
+          <div class="rank-country">France</div>
+          <div class="rank-score">4.3</div>
+        </div>
+      </div>
+      <div class="rank-name">Parc des sculptures Christian Gad et Daniel Chhé</div>
+      <div class="rank-stars"><svg width="140" height="28" viewBox="0 0 140 28" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="rgba(255,255,255,0.16)"/></g><defs><clipPath id="clip-rating-11"><rect x="0" y="0" width="120.39999999999999" height="28"/></clipPath></defs><g clip-path="url(#clip-rating-11)"><g transform="translate(0,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(28,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(56,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(84,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g><g transform="translate(112,2)"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.784 1.401 8.168L12 18.896l-7.335 3.867 1.401-8.168L.132 9.211 8.332 8.018z" fill="#f2d38b"/></g></g></svg></div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar"><span style="width:86.0%"></span></div>
+      </div>
+    </article>
+    
+    </div>
+  </div>
+</section>
+
+    <section class="image-interlude reveal">
+      <div class="image-interlude__inner">
+        <img src="https://i.pinimg.com/1200x/d3/6b/01/d36b010dee0d12f94d0761f613c0cb54.jpg" alt="Symmetrical garden design" loading="lazy" decoding="async">
+      </div>
+    </section>
+    
+    <section class="chapter-divider reveal">
+      <div class="chapter-divider__inner">
+        <div class="chapter-divider__number">Chapter 5</div>
+        <h2 class="chapter-divider__title">Emotional Structure</h2>
+        <p class="chapter-divider__subtitle">Beyond ratings: the vocabulary of feeling</p>
+      </div>
+    </section>
+    
+<section class="block chart-block reveal">
+  <div class="chart-panel">
+    <div class="section-kicker">Affective profile</div>
+    <div class="chart-title">What emotions structure the dataset overall?</div>
+    <div class="chart-subtitle">
+      Beyond ratings, the lexicon analysis reveals the emotional vocabulary that organizes visitor descriptions across all selected gardens.
+    </div>
+    <canvas id="overallEmotionChart"></canvas>
+  </div>
+</section>
+
+<section class="block chart-block reveal">
+  <div class="chart-panel">
+    <div class="section-kicker">Comparative reading</div>
+    <div class="chart-title">France and the United Kingdom compared</div>
+    <div class="chart-subtitle">
+      This chart compares country-level averages across the eight emotional categories,
+      allowing the project to test whether historically distinct garden cultures still produce different affective signatures.
+    </div>
+    <canvas id="countryComparisonChart"></canvas>
+  </div>
+</section>
+
+    <section class="chapter-columns reveal">
+      <div class="chapter-columns__inner">
+        <div class="section-kicker">Interpretation</div>
+        <h3 class="chapter-columns__title">Why emotion matters beyond ratings</h3>
+        <div class="chapter-columns__text">
+          <p>Ratings show whether a place is broadly approved, but they flatten the texture of experience into a single score. Emotion analysis adds depth by revealing what kinds of feelings structure those positive or negative judgements.</p><p>A garden with a high rating may be associated with joy and surprise, suggesting delight and discovery. Another may be highly rated because it evokes trust, signaling comfort, care, legibility, and maintenance. Others may generate more ambivalent combinations.</p><p>The comparison between France and the United Kingdom is therefore meaningful not because it fixes two stable national identities, but because it reveals tendencies in how different landscape traditions may still be perceived and narrated.</p>
+        </div>
+      </div>
+    </section>
+    
+    <section class="image-interlude reveal">
+      <div class="image-interlude__inner">
+        <img src="https://i.pinimg.com/1200x/66/f2/aa/66f2aaa665eeb51f037d454120df77f4.jpg" alt="Monumental garden landscape" loading="lazy" decoding="async">
+      </div>
+    </section>
+    
+    <section class="chapter-divider reveal">
+      <div class="chapter-divider__inner">
+        <div class="chapter-divider__number">Chapter 6</div>
+        <h2 class="chapter-divider__title">Emotional Atlas</h2>
+        <p class="chapter-divider__subtitle">Mapping the eight affective layers of visitor perception</p>
+      </div>
+    </section>
+    
+<section class="block text-block reveal">
+  <div class="text-panel">
+    <p>
+      The map below treats the dataset as an emotional atlas. As you scroll, each layer isolates one category,
+      showing how the same gardens reappear within different affective geographies. This allows the project
+      to move beyond ratings and read landscape as a field of public feeling.
+    </p>
+  </div>
+</section>
+
+<section class="scrolly-section reveal">
+  <div class="scrolly-layout">
+    <div class="scrolly-text">
+      <div class="section-kicker">Emotional atlas</div>
+      <h2 class="scrolly-heading">Scroll through the eight layers of perception</h2>
+      <div class="scrolly-steps">
+        
+    <div class="scrolly-step is-active" data-emotion="Joy">
+      <div class="scrolly-step__index">01</div>
+      <div class="scrolly-step__content">
+        <div class="scrolly-step__title">Joy</div>
+        <p>Joy is used here as a proxy for delight, scenic pleasure, leisure satisfaction, and the immediate positive affect of the visit.</p>
+      </div>
+    </div>
+    
+    <div class="scrolly-step" data-emotion="Trust">
+      <div class="scrolly-step__index">02</div>
+      <div class="scrolly-step__content">
+        <div class="scrolly-step__title">Trust</div>
+        <p>Trust can indicate comfort, care, safety, maintenance, and the sense that a garden is legible, welcoming, and well-held.</p>
+      </div>
+    </div>
+    
+    <div class="scrolly-step" data-emotion="Surprise">
+      <div class="scrolly-step__index">03</div>
+      <div class="scrolly-step__content">
+        <div class="scrolly-step__title">Surprise</div>
+        <p>Surprise is especially important for gardens because it relates to scenic reveal, discovery, changing views, and encounters with unexpected artworks or spatial episodes.</p>
+      </div>
+    </div>
+    
+    <div class="scrolly-step" data-emotion="Anticipation">
+      <div class="scrolly-step__index">04</div>
+      <div class="scrolly-step__content">
+        <div class="scrolly-step__title">Anticipation</div>
+        <p>Anticipation captures expectation and forward movement: the feeling that the landscape unfolds in sequence and promises something still to come.</p>
+      </div>
+    </div>
+    
+    <div class="scrolly-step" data-emotion="Sadness">
+      <div class="scrolly-step__index">05</div>
+      <div class="scrolly-step__content">
+        <div class="scrolly-step__title">Sadness</div>
+        <p>Sadness does not necessarily imply failure. In gardens it can also correspond to contemplation, memory, quietness, weathered beauty, or reflective atmosphere.</p>
+      </div>
+    </div>
+    
+    <div class="scrolly-step" data-emotion="Fear">
+      <div class="scrolly-step__index">06</div>
+      <div class="scrolly-step__content">
+        <div class="scrolly-step__title">Fear</div>
+        <p>Fear may indicate unease, insecurity, poor visibility, confusion, or other forms of spatial discomfort noted by visitors.</p>
+      </div>
+    </div>
+    
+    <div class="scrolly-step" data-emotion="Disgust">
+      <div class="scrolly-step__index">07</div>
+      <div class="scrolly-step__content">
+        <div class="scrolly-step__title">Disgust</div>
+        <p>Disgust often points to maintenance issues, dirt, crowding, neglect, or negative reactions to the material condition of the place.</p>
+      </div>
+    </div>
+    
+    <div class="scrolly-step" data-emotion="Anger">
+      <div class="scrolly-step__index">08</div>
+      <div class="scrolly-step__content">
+        <div class="scrolly-step__title">Anger</div>
+        <p>Anger usually reflects frustration: closures, restricted access, pricing, rules, disappointment, or unmet expectations rather than aesthetic experience alone.</p>
+      </div>
+    </div>
+    
+      </div>
+    </div>
+
+    <div class="scrolly-sticky">
+      <div class="map-panel map-panel--sticky">
+        <div class="map-panel__header">
+          <div>
+            <div class="map-panel__kicker">Interactive layer</div>
+            <div class="map-panel__title" id="activeEmotionTitle">Joy</div>
+          </div>
+
+          <div class="map-panel__tools">
+            <div class="country-toggle" id="countryToggle">
+              <button class="country-btn is-active" data-country="ALL">All</button>
+              <button class="country-btn" data-country="FR">France</button>
+              <button class="country-btn" data-country="UK">United Kingdom</button>
+            </div>
+            <div class="map-panel__legend" id="activeEmotionLegend">Emotion intensity by site</div>
+          </div>
+        </div>
+
+        <div id="map"></div>
+
+        <div class="map-caption">
+          <div class="map-caption__title">Interpretation</div>
+          <p id="activeEmotionCaption">At this layer, the map highlights where visitors most strongly register delight and immediate positive experience. In landscape terms, joy often corresponds to scenic richness, leisure quality, visual pleasure, and the simple success of the visit as an enjoyable outing.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+    <section class="image-interlude reveal">
+      <div class="image-interlude__inner">
+        <img src="https://stevemiddlehurstlandscape.wordpress.com/wp-content/uploads/2017/02/2017-02-13_14-09-45.jpg" alt="English landscape garden" loading="lazy" decoding="async">
+      </div>
+    </section>
+    
+    <section class="chapter-divider reveal">
+      <div class="chapter-divider__inner">
+        <div class="chapter-divider__number">Chapter 7</div>
+        <h2 class="chapter-divider__title">Reading the Findings</h2>
+        <p class="chapter-divider__subtitle">From spatial form to emotional atmosphere</p>
+      </div>
+    </section>
+    
+    <section class="chapter-columns reveal">
+      <div class="chapter-columns__inner">
+        <div class="section-kicker">Interpretive Discussion</div>
+        <h3 class="chapter-columns__title">What the patterns might mean</h3>
+        <div class="chapter-columns__text">
+          <p>Taken together, the maps and charts suggest that garden traditions may persist not only in morphology, but in atmosphere. Some spaces appear to be described through delight, scenic richness, and surprise; others through reassurance, care, and composure.</p><p>These patterns should be interpreted cautiously. Public reviews are shaped by tourism, platform culture, weather, service conditions, crowding, and accessibility as much as by landscape form itself. Yet even with these limitations, the dataset offers a valuable lens into how environments are collectively experienced.</p><p>What emerges is not a rigid opposition between French and British gardens, but a field of emotional tendencies. The project therefore invites a broader methodological claim: digital public language can serve as material for landscape interpretation.</p>
+        </div>
+      </div>
+    </section>
+    
+    <section class="image-interlude reveal">
+      <div class="image-interlude__inner">
+        <img src="https://hellfiresecrets.files.wordpress.com/2012/03/hannan.png" alt="Garden folly" loading="lazy" decoding="async">
+      </div>
+    </section>
+    
+    <section class="chapter-divider reveal">
+      <div class="chapter-divider__inner">
+        <div class="chapter-divider__number">Chapter 8</div>
+        <h2 class="chapter-divider__title">Conclusion</h2>
+        <p class="chapter-divider__subtitle">Landscape traditions survive not only in form, but in public feeling</p>
+      </div>
+    </section>
+    
+    <section class="chapter-lead reveal">
+      <div class="chapter-lead__inner">
+        <div class="section-kicker">Closing Reflection</div>
+        <h3 class="chapter-lead__title">From designed nature to emotional discourse</h3>
+        <p class="chapter-lead__text">This study argues that gardens can be read as emotional landscapes. By comparing visitor reviews across France and the United Kingdom, it shows that historic design traditions continue to resonate through the ways people describe delight, comfort, discovery, and atmosphere in contemporary public space.</p>
+      </div>
+    </section>
+    
+    <section class="image-interlude reveal">
+      <div class="image-interlude__inner">
+        <img src="https://georgianera.wordpress.com/wp-content/uploads/2017/05/blenheim_1835_lart-de-crecc81er-les-jardins.jpg" alt="Romantic landscape garden" loading="lazy" decoding="async">
+      </div>
+    </section>
+    
+  </main>
+
+  <section class="outro">
+    <p>From landscape history to public feeling</p>
+  </section>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <script>
+    const revealItems = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+        } else {
+          entry.target.classList.remove('is-visible');
+        }
+      });
+    }, {
+      threshold: 0.18,
+      rootMargin: '0px 0px -8% 0px'
+    });
+    revealItems.forEach(item => revealObserver.observe(item));
+
+    const overallData = [{"emotion": "Anger", "value": 0.0144958659578525}, {"emotion": "Anticipation", "value": 0.1288580721335225}, {"emotion": "Disgust", "value": 0.0124629769451411}, {"emotion": "Fear", "value": 0.0160600135062177}, {"emotion": "Joy", "value": 0.288661104279434}, {"emotion": "Sadness", "value": 0.0382624555714025}, {"emotion": "Surprise", "value": 0.0763337744084862}, {"emotion": "Trust", "value": 0.143575920474357}];
+    const countryData = [{"country": "FR", "Anger": 0.015079646648896442, "Anticipation": 0.12866332401710928, "Disgust": 0.018155008158854284, "Fear": 0.020382738080684228, "Joy": 0.2752343205173441, "Sadness": 0.04855238135704694, "Surprise": 0.0973354139302071, "Trust": 0.1428848297665876}, {"country": "UK", "Anger": 0.015431360004172761, "Anticipation": 0.14128647837058966, "Disgust": 0.01301829480016228, "Fear": 0.02701422169801106, "Joy": 0.253052849202892, "Sadness": 0.04762617868891924, "Surprise": 0.08347257076859511, "Trust": 0.14019501068007767}];
+    const mapData = [{"name": "Arboretum de la Tuillière", "Lat": 45.27565489, "Lon": 1.32227646, "country": "FR", "rating": 4.6, "Anger": 0.0070294784576785, "Anticipation": 0.1397823873108928, "Disgust": 0.0236111111107142, "Fear": 0.0186841403219642, "Joy": 0.2794783385321428, "Sadness": 0.0526031333280357, "Surprise": 0.1163975205471428, "Trust": 0.1838424618035714}, {"name": "Bodnant Garden - National Trust", "Lat": 53.23445071, "Lon": -3.794997046, "country": "UK", "rating": 4.8, "Anger": 0.0142632207694584, "Anticipation": 0.1468634203209472, "Disgust": 0.0101477986133215, "Fear": 0.0148657628947115, "Joy": 0.2946937792652496, "Sadness": 0.0361828235091056, "Surprise": 0.063053084196913, "Trust": 0.1355766089269589}, {"name": "Cotswold Sculpture Park", "Lat": 51.66045776, "Lon": -1.974152473, "country": "UK", "rating": 4.7, "Anger": 0.0241680266795073, "Anticipation": 0.157177435997931, "Disgust": 0.0161478194932019, "Fear": 0.01274983501555, "Joy": 0.2378581776909688, "Sadness": 0.0490478700237438, "Surprise": 0.0998496961322003, "Trust": 0.1402753589956321}, {"name": "Ile Art Malans", "Lat": 47.26742904000001, "Lon": 5.587887375, "country": "FR", "rating": 4.5, "Anger": 0.0163283064720754, "Anticipation": 0.1583537180296226, "Disgust": 0.0306317537693396, "Fear": 0.026574807875566, "Joy": 0.2565501901267925, "Sadness": 0.0840400448365094, "Surprise": 0.1343442052539622, "Trust": 0.1327996151497169}, {"name": "Musée Rodin", "Lat": 48.85516947, "Lon": 2.315792462, "country": "FR", "rating": 4.7, "Anger": 0.0160519226021876, "Anticipation": 0.1169160567283659, "Disgust": 0.0147901170646489, "Fear": 0.0171853843043408, "Joy": 0.3053821647103565, "Sadness": 0.0407917584300672, "Surprise": 0.0824834670026364, "Trust": 0.1435375185231962}, {"name": "Parc Monceau", "Lat": 48.8797082, "Lon": 2.308912074, "country": "FR", "rating": 4.6, "Anger": 0.0114633604197908, "Anticipation": 0.1285309545987583, "Disgust": 0.0116227928166421, "Fear": 0.0154132920250445, "Joy": 0.2713116372033823, "Sadness": 0.0338747429788918, "Surprise": 0.0751863913802225, "Trust": 0.155311559324328}, {"name": "Parc de Sculptures Monumentales Teillé-Mouzeil", "Lat": 47.4395467, "Lon": -1.295541185, "country": "FR", "rating": 4.4, "Anger": 0.0297612297602702, "Anticipation": 0.1411963411918919, "Disgust": 0.0221760221729729, "Fear": 0.033171783171081, "Joy": 0.2409935409891892, "Sadness": 0.0590060090048648, "Surprise": 0.1087753087737838, "Trust": 0.1216765216764864}, {"name": "Parc des sculptures Christian Gad et Daniel Chhé", "Lat": 48.82498119, "Lon": -3.479395857, "country": "FR", "rating": 4.3, "Anger": 0.0146689728442556, "Anticipation": 0.0970520892138267, "Disgust": 0.0076193471728511, "Fear": 0.0128487157255508, "Joy": 0.2199771183017745, "Sadness": 0.0249352644062825, "Surprise": 0.0869476965756265, "Trust": 0.1044957915519932}, {"name": "Prés Fichaux Garden", "Lat": 47.09038661, "Lon": 2.395398177, "country": "FR", "rating": 4.4, "Anger": 0.010254255986017, "Anticipation": 0.1188117210464068, "Disgust": 0.0166339130048112, "Fear": 0.0188010431412423, "Joy": 0.352947253757771, "Sadness": 0.0446157165146772, "Surprise": 0.0772133079780755, "Trust": 0.1585303403368209}, {"name": "Tate Modern Garden", "Lat": 51.50822725, "Lon": -0.1000074505, "country": "UK", "rating": 4.5, "Anger": 0.0100499500495384, "Anticipation": 0.1495742718756923, "Disgust": 0.013838725376, "Fear": 0.0442252192252307, "Joy": 0.1937284937232307, "Sadness": 0.0432480340172307, "Surprise": 0.0770836428513846, "Trust": 0.1297901244035384}, {"name": "Terence Coventry Sculpture Park", "Lat": 50.01565311, "Lon": -5.099553124, "country": "UK", "rating": 4.6, "Anger": 0.0113644688646153, "Anticipation": 0.12472222222, "Disgust": 0.0135622710630769, "Fear": 0.0467918192923076, "Joy": 0.23713980464, "Sadness": 0.0588217338215384, "Surprise": 0.0984004884, "Trust": 0.1168894993876923}, {"name": "Tremenheere Sculpture Gardens", "Lat": 50.1366029, "Lon": -5.506179584000001, "country": "UK", "rating": 4.7, "Anger": 0.0173111336577444, "Anticipation": 0.1280950414383777, "Disgust": 0.0113948594552111, "Fear": 0.0164384720622555, "Joy": 0.3018439906950111, "Sadness": 0.0508304320729777, "Surprise": 0.0789759422624777, "Trust": 0.1784434616865666}];
+    const emotionCaptions = {"Joy": "At this layer, the map highlights where visitors most strongly register delight and immediate positive experience. In landscape terms, joy often corresponds to scenic richness, leisure quality, visual pleasure, and the simple success of the visit as an enjoyable outing.", "Trust": "This layer foregrounds gardens that read as cared-for, legible, and reassuring. Trust may point to maintenance, accessibility, spatial comfort, and the sense that the environment is stable, welcoming, and easy to inhabit.", "Surprise": "Surprise captures discovery. In garden design, this can be linked to unfolding routes, picturesque reveal, unexpected sculpture encounters, and the sequencing of atmosphere across movement through the site.", "Anticipation": "Anticipation suggests that the landscape is experienced as a progression rather than a static view. It often points to paths, transitions, framed glimpses, and the expectation that something more is about to be encountered.", "Sadness": "Here, the map does not necessarily indicate negative failure. Sadness can also relate to reflective atmosphere, quietness, weathered beauty, memory, melancholy, and emotionally subdued forms of landscape experience.", "Fear": "This layer can reveal spaces associated with unease or discomfort. In practical terms, fear may relate to disorientation, poor visibility, crowd pressure, or other aspects of the visitor experience that undermine ease and confidence.", "Disgust": "Disgust often signals friction between aesthetic expectation and material condition. It may reflect dirt, poor upkeep, crowding, neglect, or disappointment in how the place is managed and encountered.", "Anger": "Anger is best read as a layer of frustration. It commonly emerges around access restrictions, closures, pricing, rules, unmet expectations, or service complaints rather than from landscape form alone."};
+
+    // =========================
+    // CHART 1: overall emotions
+    // =========================
+    const overallCtx = document.getElementById('overallEmotionChart').getContext('2d');
+    new Chart(overallCtx, {
+      type: 'bar',
+      data: {
+        labels: overallData.map(d => d.emotion),
+        datasets: [{
+          label: 'Average score',
+          data: overallData.map(d => d.value),
+          backgroundColor: [
+            '#c96f6f','#d8b26e','#7f8b52','#7c6ccf',
+            '#d9b65d','#6f87c9','#d78c5f','#5e9b7b'
+          ],
+          borderRadius: 10,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` Average: ${Number(ctx.raw).toFixed(3)}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#f3eee3' },
+            grid: { display: false }
+          },
+          y: {
+            ticks: {
+              color: '#f3eee3',
+              callback: (value) => Number(value).toFixed(2)
+            },
+            grid: { color: 'rgba(255,255,255,0.08)' }
+          }
+        }
+      }
+    });
+
+    // =========================
+    // CHART 2: country comparison
+    // =========================
+    const emotionOrder = ["Anger","Anticipation","Disgust","Fear","Joy","Sadness","Surprise","Trust"];
+    const fr = countryData.find(d => d.country === 'FR') || {};
+    const uk = countryData.find(d => d.country === 'UK') || {};
+
+    const countryCtx = document.getElementById('countryComparisonChart').getContext('2d');
+    new Chart(countryCtx, {
+      type: 'radar',
+      data: {
+        labels: emotionOrder,
+        datasets: [
+          {
+            label: 'France',
+            data: emotionOrder.map(e => fr[e] || 0),
+            borderColor: '#8fa7d6',
+            backgroundColor: 'rgba(143,167,214,0.18)',
+            pointBackgroundColor: '#8fa7d6',
+            pointRadius: 3
+          },
+          {
+            label: 'United Kingdom',
+            data: emotionOrder.map(e => uk[e] || 0),
+            borderColor: '#dfc792',
+            backgroundColor: 'rgba(223,199,146,0.14)',
+            pointBackgroundColor: '#dfc792',
+            pointRadius: 3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: { color: '#f3eee3' }
+          }
+        },
+        scales: {
+          r: {
+            angleLines: { color: 'rgba(255,255,255,0.08)' },
+            grid: { color: 'rgba(255,255,255,0.08)' },
+            pointLabels: {
+              color: '#f3eee3',
+              font: { size: 12 }
+            },
+            ticks: {
+              color: '#f3eee3',
+              backdropColor: 'transparent',
+              callback: (value) => Number(value).toFixed(2)
+            }
+          }
+        }
+      }
+    });
+
+    // =========================
+    // MAP
+    // =========================
+    const emotionStyles = {
+      Anger:        { color: '#c96f6f' },
+      Anticipation: { color: '#d8b26e' },
+      Disgust:      { color: '#7f8b52' },
+      Fear:         { color: '#7c6ccf' },
+      Joy:          { color: '#d9b65d' },
+      Sadness:      { color: '#6f87c9' },
+      Surprise:     { color: '#d78c5f' },
+      Trust:        { color: '#5e9b7b' }
+    };
+
+    const map = L.map('map', {
+      scrollWheelZoom: false,
+      zoomControl: true
+    }).setView([50.2, 1.5], 5);
+
+    L.tileLayer("https://api.mapbox.com/styles/v1/kuttin29/cmnyoapd8000q01sg3cjeh5mk/tiles/512/{z}/{x}/{y}?access_token=MAPBOX_TOKEN_PLACEHOLDER", {
+      tileSize: 512,
+      zoomOffset: -1,
+      maxZoom: 18,
+      attribution: '&copy; Mapbox &copy; OpenStreetMap'
+    }).addTo(map);
+
+    let currentEmotion = "Joy";
+    let currentCountry = "ALL";
+    let activeLayer = null;
+
+    function filteredData(countryCode) {
+      if (countryCode === "ALL") return mapData;
+      return mapData.filter(d => d.country === countryCode);
+    }
+
+    function buildLayer(emotion, countryCode) {
+      const group = L.layerGroup();
+      const rows = filteredData(countryCode);
+
+      rows.forEach(site => {
+        const val = Number(site[emotion] || 0);
+        const radius = 6 + val * 95;
+
+        const popupHtml = `
+          <div style="font-family: Helvetica, Arial, sans-serif; line-height: 1.55; min-width:220px;">
+            <strong>${site.name}</strong><br>
+            Country: ${site.country === 'FR' ? 'France' : 'United Kingdom'}<br>
+            Rating: ${site.rating ? Number(site.rating).toFixed(1) : '—'}<br><br>
+            <strong>${emotion}</strong>: ${val.toFixed(3)}<br>
+            Joy: ${Number(site.Joy || 0).toFixed(3)}<br>
+            Trust: ${Number(site.Trust || 0).toFixed(3)}<br>
+            Surprise: ${Number(site.Surprise || 0).toFixed(3)}
+          </div>
+        `;
+
+        L.circleMarker([site.Lat, site.Lon], {
+          radius: radius,
+          color: emotionStyles[emotion].color,
+          fillColor: emotionStyles[emotion].color,
+          fillOpacity: 0.46,
+          weight: 1.2
+        })
+        .bindPopup(popupHtml)
+        .addTo(group);
+      });
+
+      return group;
+    }
+
+    function fitMapToCountry(countryCode) {
+      if (countryCode === "ALL") {
+        map.setView([50.2, 1.5], 5);
+        return;
+      }
+
+      const rows = filteredData(countryCode);
+      if (!rows.length) return;
+
+      const bounds = L.latLngBounds(rows.map(d => [d.Lat, d.Lon]));
+      map.fitBounds(bounds, { padding: [40, 40] });
+    }
+
+    function setActiveEmotion(emotion) {
+      currentEmotion = emotion;
+
+      if (activeLayer) {
+        map.removeLayer(activeLayer);
+      }
+
+      activeLayer = buildLayer(currentEmotion, currentCountry);
+      activeLayer.addTo(map);
+
+      const title = document.getElementById('activeEmotionTitle');
+      const legend = document.getElementById('activeEmotionLegend');
+      const caption = document.getElementById('activeEmotionCaption');
+
+      title.textContent = emotion;
+      legend.textContent = "Emotion intensity by site";
+      caption.textContent = emotionCaptions[emotion] || "";
+    }
+
+    function setActiveCountry(countryCode) {
+      currentCountry = countryCode;
+
+      document.querySelectorAll('.country-btn').forEach(btn => {
+        btn.classList.toggle('is-active', btn.dataset.country === countryCode);
+      });
+
+      if (activeLayer) {
+        map.removeLayer(activeLayer);
+      }
+
+      activeLayer = buildLayer(currentEmotion, currentCountry);
+      activeLayer.addTo(map);
+      fitMapToCountry(countryCode);
+    }
+
+    // init
+    setActiveEmotion("Joy");
+
+    document.querySelectorAll('.country-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const countryCode = btn.dataset.country;
+        setActiveCountry(countryCode);
+      });
+    });
+
+    // scrolly steps
+    const scrollySteps = document.querySelectorAll('.scrolly-step');
+
+    const stepObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const emotion = entry.target.dataset.emotion;
+
+          scrollySteps.forEach(step => step.classList.remove('is-active'));
+          entry.target.classList.add('is-active');
+
+          setActiveEmotion(emotion);
+        }
+      });
+    }, {
+      threshold: 0.55
+    });
+
+    scrollySteps.forEach(step => stepObserver.observe(step));
+  </script>
+</body>
+</html>
