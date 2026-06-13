@@ -27,7 +27,7 @@
 
 :root{
   /* palette — light (default) */
-  --paper:#F5F3EE;
+  --paper:#F1F3FF;   /* Pantone 11-0102 TSX "Marshmallow Crème" */
   --ink:#15140F;
   --ink-2:#6F6B62;
   --rule:#DDD8CC;
