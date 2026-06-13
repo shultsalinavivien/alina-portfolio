@@ -231,6 +231,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* media placeholder (until real images arrive) */
 .plate{position:relative;border:1px solid var(--rule);background:var(--field);aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .plate--portrait{max-width:380px;aspect-ratio:4/5}
+.plate img{width:100%;height:100%;object-fit:cover;display:block}
 .plate__tag{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:0;color:var(--ink-2)}
 .figcap{margin-top:.6rem;font-family:var(--mono);font-size:.72rem;letter-spacing:0;color:var(--ink-2)}
 .figcap a{color:var(--ink-2);border-bottom:1px solid transparent;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
