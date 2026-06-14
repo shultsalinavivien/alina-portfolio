@@ -164,10 +164,10 @@
     var chipTick = false;
     var updateChips = function () {
       chipTick = false;
-      var cy = window.innerHeight / 2, band = window.innerHeight * 0.07;
+      var triggerY = window.innerHeight * 0.8;
       for (var i = 0; i < chips.length; i++) {
         var r = chips[i].getBoundingClientRect();
-        chips[i].classList.toggle("is-inverted", Math.abs((r.top + r.bottom) / 2 - cy) < band);
+        chips[i].classList.toggle("is-inverted", (r.top + r.bottom) / 2 < triggerY);
       }
     };
     var onChipScroll = function () { if (!chipTick) { chipTick = true; requestAnimationFrame(updateChips); } };
@@ -227,6 +227,37 @@
     document.addEventListener("mouseleave", function () { dot.style.opacity = "0"; });
     document.addEventListener("mouseenter", function () { dot.style.opacity = "1"; });
   })();
+
+  /* ---- header clock (viewer's local time) ---- */
+  (function () {
+    var row = document.querySelector(".site-header__row");
+    if (!row) return;
+    var clock = document.createElement("span");
+    clock.className = "clock"; clock.setAttribute("aria-hidden", "true");
+    row.appendChild(clock);
+    function p(n) { return (n < 10 ? "0" : "") + n; }
+    function tick() { var d = new Date(); clock.textContent = p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds()); }
+    tick(); setInterval(tick, 1000);
+  })();
+
+  /* ---- expeditions: reveal Russia-map dots one-by-one on scroll ---- */
+  var expRows = document.querySelectorAll(".expeditions .row2");
+  var expDots = document.querySelectorAll(".exp-dot");
+  if (expRows.length && expDots.length) {
+    var expTick = false;
+    var updateExp = function () {
+      expTick = false;
+      var triggerY = window.innerHeight * 0.85;
+      for (var i = 0; i < expRows.length && i < expDots.length; i++) {
+        var r = expRows[i].getBoundingClientRect();
+        expDots[i].classList.toggle("on", (r.top + r.bottom) / 2 < triggerY);
+      }
+    };
+    var onExpScroll = function () { if (!expTick) { expTick = true; requestAnimationFrame(updateExp); } };
+    window.addEventListener("scroll", onExpScroll, { passive: true });
+    window.addEventListener("resize", onExpScroll);
+    updateExp();
+  }
 
   /* ---- footer year ---- */
   var yr = new Date().getFullYear();
