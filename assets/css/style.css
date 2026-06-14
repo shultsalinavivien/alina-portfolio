@@ -52,6 +52,10 @@
   --pad:clamp(1.25rem,5vw,6rem);
   --gutter:1.5rem;
 
+  /* vertical rhythm */
+  --flow:clamp(1rem,2.5vw,1.75rem);
+  --flow-tight:.5rem;
+
   /* motion */
   --dur-fast:180ms;
   --dur:340ms;
@@ -244,8 +248,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .figcap a{color:var(--ink-2);border-bottom:1px solid transparent;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
 .figcap a:hover{color:var(--ink);border-color:var(--ink)}
 .panelgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem}
+@media (max-width:760px){.panelgrid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.panelgrid{grid-template-columns:1fr}}
 .panelgrid img,.board img{width:100%;height:auto;display:block;border:1px solid var(--rule);filter:grayscale(1) contrast(1.03);cursor:zoom-in}
-.board{margin-top:.4rem}
 @media (prefers-color-scheme:dark){:root:not([data-theme]) .panelgrid img,:root:not([data-theme]) .board img{filter:grayscale(1) contrast(1.03) brightness(.85)}}
 :root[data-theme="dark"] .panelgrid img,:root[data-theme="dark"] .board img{filter:grayscale(1) contrast(1.03) brightness(.85)}
 
@@ -258,7 +263,6 @@ html.lb-open{overflow:hidden}
 .lightbox__close:hover{opacity:1}
 
 /* flipbook — page through the embedded brandbook */
-.flipbook{margin-top:.4rem}
 .flip__stage{position:relative;border:1px solid var(--rule);background:var(--field);outline:none}
 .flip__stage:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 .flip__page{display:block;width:100%;height:auto;user-select:none}
@@ -284,7 +288,7 @@ html.lb-open{overflow:hidden}
 figure:has(.plate__tag){display:none}
 
 /* About intro — portrait beside bio; frame sized to the image (no crop) */
-.about-lede{display:grid;gap:clamp(1.5rem,4vw,2.5rem);align-items:start;margin-top:clamp(1.5rem,4vw,2.5rem)}
+.about-lede{display:grid;gap:clamp(1.5rem,4vw,2.5rem);align-items:start}
 .about-lede .portrait{margin:0}
 .about-lede .portrait img{display:block;width:100%;height:auto;border:1px solid var(--rule)}
 @media (min-width:760px){
@@ -316,6 +320,11 @@ figure:has(.plate__tag){display:none}
   }
   html:not([data-page="home"]) main .section:has(.sec-head) > :not(.sec-head){grid-column:2}
 }
+
+/* ---- Vertical rhythm (gap-based flow) -------------------------------- */
+html:not([data-page="home"]) main .section{display:flex;flex-direction:column;gap:var(--flow)}
+.proj-body,.proj-desc{display:flex;flex-direction:column;gap:var(--flow)}
+.proj-body > .itemmeta + .itemmeta,.proj-desc > .itemmeta + .itemmeta{margin-top:calc(var(--flow-tight) - var(--flow))}
 
 /* ---- Places map (home) ------------------------------------------------- */
 .placemap-wrap{margin-top:.5rem}
@@ -351,10 +360,9 @@ figure:has(.plate__tag){display:none}
 .btn:hover{color:var(--ink);border-color:var(--ink-2)}
 .btn--primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .btn--primary:hover{color:var(--paper);opacity:.9}
-.cta-band .lead{margin-top:.6rem}
 
 /* ---- Case study -------------------------------------------------------- */
-.case{display:flex;flex-direction:column;gap:clamp(1.6rem,3.5vw,2.6rem);margin-top:clamp(1.4rem,3vw,2rem)}
+.case{display:flex;flex-direction:column;gap:clamp(1.6rem,3.5vw,2.6rem)}
 .case-step{display:grid;gap:.5rem}
 .case-step__label{font-family:var(--mono);font-size:var(--fs-mono);text-transform:uppercase;
   letter-spacing:.04em;color:var(--ink-2);padding-bottom:.5rem;border-bottom:1px solid var(--rule)}
@@ -395,7 +403,7 @@ html:not([data-page="home"]) main .section.expeditions:has(.sec-head){grid-templ
 .prose a,.numbered a,.foot-links a,.figcap a{border-bottom:0}
 /* ---- Work project rows: name | description | photo (3-column Swiss grid) ---- */
 .workfig{display:block;width:100%;height:auto;border:1px solid var(--rule);filter:grayscale(1)}
-@media (max-width:879.98px){.workfig{margin-top:1.2rem;max-width:300px}}
+@media (max-width:879.98px){.workfig{max-width:300px}}
 @media (min-width:880px){
   html:not([data-page="home"]) main .section.project3:has(.sec-head){grid-template-columns:minmax(0,3fr) minmax(0,5fr) minmax(0,3fr)}
   html:not([data-page="home"]) main .section.project3:has(.sec-head) > .workfig{grid-column:3}
@@ -403,6 +411,6 @@ html:not([data-page="home"]) main .section.expeditions:has(.sec-head){grid-templ
 }
 
 /* ---- skyline bits above the "Let's build" CTA (generative) ---- */
-.skybits{position:relative;width:100%;height:clamp(110px,15vh,168px);margin-bottom:1.5rem;overflow:hidden}
+.skybits{position:relative;width:100%;height:clamp(110px,15vh,168px);overflow:hidden}
 .skybits canvas{display:block;width:100%;height:100%}
-@media (max-width:560px){.skybits{height:96px;margin-bottom:1.1rem}}
+@media (max-width:560px){.skybits{height:96px}}
