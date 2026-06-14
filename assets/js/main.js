@@ -158,6 +158,59 @@
     requestAnimationFrame(frame);
   })();
 
+  /* ---- skills chips: invert while passing the viewport centre ---- */
+  var chips = document.querySelectorAll(".chip");
+  if (chips.length) {
+    var chipTick = false;
+    var updateChips = function () {
+      chipTick = false;
+      var cy = window.innerHeight / 2, band = window.innerHeight * 0.07;
+      for (var i = 0; i < chips.length; i++) {
+        var r = chips[i].getBoundingClientRect();
+        chips[i].classList.toggle("is-inverted", Math.abs((r.top + r.bottom) / 2 - cy) < band);
+      }
+    };
+    var onChipScroll = function () { if (!chipTick) { chipTick = true; requestAnimationFrame(updateChips); } };
+    window.addEventListener("scroll", onChipScroll, { passive: true });
+    window.addEventListener("resize", onChipScroll);
+    updateChips();
+  }
+
+  /* ---- ink cursor (calligraphy trail) ---- */
+  (function () {
+    if (!window.matchMedia) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+    var canvas = document.createElement("canvas");
+    canvas.id = "ink-cursor";
+    (document.body || document.documentElement).appendChild(canvas);
+    var ctx = canvas.getContext("2d"), dpr = 1;
+    function size() { dpr = Math.min(window.devicePixelRatio || 1, 2); canvas.width = window.innerWidth * dpr; canvas.height = window.innerHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+    size(); window.addEventListener("resize", size);
+    function readInk() { return (getComputedStyle(document.documentElement).getPropertyValue("--ink") || "#15140F").trim() || "#15140F"; }
+    var col = readInk(), pts = [], last = null, life = 520, running = false;
+    window.addEventListener("mousemove", function (e) {
+      var now = performance.now(), x = e.clientX, y = e.clientY, w = 6;
+      if (last) { var dx = x - last.x, dy = y - last.y, d = Math.sqrt(dx * dx + dy * dy), speed = d / Math.max(1, now - last.t); w = Math.max(0.6, Math.min(7, 7 - speed * 6)); }
+      pts.push({ x: x, y: y, t: now, w: w }); last = { x: x, y: y, t: now };
+      if (!running) { running = true; requestAnimationFrame(frame); }
+    }, { passive: true });
+    function frame(now) {
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      while (pts.length && now - pts[0].t > life) pts.shift();
+      ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = col;
+      for (var i = 1; i < pts.length; i++) {
+        var a = pts[i - 1], b = pts[i], alpha = Math.max(0, 1 - (now - b.t) / life);
+        ctx.globalAlpha = alpha * 0.85; ctx.lineWidth = b.w;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      if (pts.length) requestAnimationFrame(frame); else running = false;
+    }
+    var mo = new MutationObserver(function () { col = readInk(); });
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  })();
+
   /* ---- footer year ---- */
   var yr = new Date().getFullYear();
   document.querySelectorAll("[data-year]").forEach(function (e) { e.textContent = yr; });

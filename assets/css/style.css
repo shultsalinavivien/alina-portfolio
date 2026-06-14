@@ -336,4 +336,7 @@ figure:has(.plate__tag){display:none}
 /* ---- Chips (skills / tags) --------------------------------------------- */
 .chips{display:flex;flex-wrap:wrap;gap:.5rem;list-style:none;padding:0;margin:0}
 .chip{font-family:var(--mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.03em;
-  color:var(--ink-2);border:1px solid var(--rule);border-radius:4px;padding:.35rem .6rem}
+  color:var(--ink-2);border:1px solid var(--rule);border-radius:4px;padding:.35rem .6rem;
+  transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
+.chip.is-inverted{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+#ink-cursor{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9998}
