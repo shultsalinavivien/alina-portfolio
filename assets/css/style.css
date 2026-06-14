@@ -243,6 +243,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .figcap{margin-top:.6rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.04em;color:var(--ink-2)}
 .figcap a{color:var(--ink-2);border-bottom:1px solid transparent;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
 .figcap a:hover{color:var(--ink);border-color:var(--ink)}
+.panelgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem}
+.panelgrid img{width:100%;height:auto;display:block;border:1px solid var(--rule);filter:grayscale(1) contrast(1.03)}
+@media (prefers-color-scheme:dark){:root:not([data-theme]) .panelgrid img{filter:grayscale(1) contrast(1.03) brightness(.85)}}
+:root[data-theme="dark"] .panelgrid img{filter:grayscale(1) contrast(1.03) brightness(.85)}
 
 /* embedded video (16:9, same frame as .plate) */
 .video{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--rule);background:var(--field);overflow:hidden}
@@ -367,3 +371,10 @@ html:not([data-page="home"]) main .section.expeditions:has(.sec-head){grid-templ
 
 /* underline all text links except nav/buttons/volunteering (single underline, no double border) */
 .prose a,.numbered a,.foot-links a,.figcap a{border-bottom:0}
+/* ---- Work project figures: small images tucked into the heading column ---- */
+.workfig{margin-top:1.4rem;margin-bottom:.2rem}
+.workfig img{display:block;width:100%;height:auto;border:1px solid var(--rule);filter:grayscale(1)}
+.workfig .figcap{margin-top:.5rem}
+.workfig--sq{max-width:200px}      /* Basquiat — square */
+.workfig--tall{max-width:160px}    /* Garden — tall ASCII */
+.workfig--wide{max-width:255px}    /* SoHo — landscape */
