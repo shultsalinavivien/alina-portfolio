@@ -298,8 +298,8 @@ figure:has(.plate__tag){display:none}
 /* ---- Footer ------------------------------------------------------------ */
 .site-footer{border-top:1px solid var(--rule);margin-top:clamp(3rem,8vw,6rem)}
 .site-footer__row{display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:space-between;padding-block:2.5rem}
-/* qilin emblem in the footer's right corner — masked so it takes the ink colour in both themes */
-.site-footer__row::after{content:"";flex:0 0 auto;align-self:center;width:64px;height:64px;background:var(--ink);opacity:.85;-webkit-mask:url(../img/qilin.png) center/contain no-repeat;mask:url(../img/qilin.png) center/contain no-repeat}
+/* qilin emblem in line with the footer links — masked so it takes the ink colour in both themes */
+.foot-links::after{content:"";flex:0 0 auto;align-self:center;width:44px;height:44px;background:var(--ink);opacity:.85;-webkit-mask:url(../img/qilin.png) center/contain no-repeat;mask:url(../img/qilin.png) center/contain no-repeat}
 .foot-links{display:flex;flex-wrap:wrap;gap:1rem 1.4rem}
 .foot-links a{font-family:var(--mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-2);border-bottom:1px solid transparent}
 .foot-links a:hover{color:var(--ink);border-bottom-color:var(--ink)}
