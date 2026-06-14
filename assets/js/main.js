@@ -59,14 +59,14 @@
     var dataEl = document.getElementById("placedata");
     var places = [];
     try { places = JSON.parse(dataEl.textContent); } catch (e) { places = []; }
-    var W = 1000, H = 389, lonMin = -180, lonMax = 180, latMin = -56, latMax = 84;
+    var W = 1000, H = 444, lonMin = -90, lonMax = 180, latMin = -40, latMax = 80;
     function px(lon) { return (lon - lonMin) / (lonMax - lonMin) * W; }
     function py(lat) { return (latMax - lat) / (latMax - latMin) * H; }
     function mk(tag, attrs) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
     var readout = document.getElementById("mapreadout");
     var defaultMsg = readout ? readout.textContent : "";
     var grat = mk("g", {});
-    for (var lon = -150; lon <= 150; lon += 30) { var lx = px(lon); grat.appendChild(mk("line", { x1: lx, y1: 0, x2: lx, y2: H, "class": "graticule" })); }
+    for (var lon = -60; lon <= 180; lon += 30) { var lx = px(lon); grat.appendChild(mk("line", { x1: lx, y1: 0, x2: lx, y2: H, "class": "graticule" })); }
     for (var lat = -40; lat <= 80; lat += 20) { var ly = py(lat); grat.appendChild(mk("line", { x1: 0, y1: ly, x2: W, y2: ly, "class": "graticule" })); }
     mapEl.appendChild(grat);
     places.forEach(function (p) {
