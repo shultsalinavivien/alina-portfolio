@@ -87,7 +87,9 @@ body{
   transition:background var(--dur) var(--ease),color var(--dur) var(--ease);
 }
 img,svg{display:block;max-width:100%;height:auto}
-a{color:inherit;text-decoration:none}
+a{color:inherit;text-decoration:underline;text-decoration-color:var(--ink-2);text-decoration-thickness:1px;text-underline-offset:.16em;transition:text-decoration-color var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
+a:hover{text-decoration-color:var(--ink)}
+.skip-link,.wordmark,.nav a,.btn,.work-row,.volunteer a{text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 ::selection{background:#000;color:#fff}
 ::-moz-selection{background:#000;color:#fff}
@@ -132,6 +134,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   color:var(--ink-2);display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);
   padding:6px 10px;border-radius:4px;transition:border-color var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
 .theme-toggle:hover{color:var(--ink);border-color:var(--ink-2)}
+.phyllo-mark{flex:0 0 auto;width:40px;height:40px;line-height:0;pointer-events:none;align-self:center}
+.phyllo-mark canvas{display:block}
+@media (max-width:760px){.phyllo-mark{display:none}}
 .nav-toggle{display:none}
 
 @media (max-width:760px){
@@ -347,9 +352,12 @@ figure:has(.plate__tag){display:none}
 #cursor-dot.cursor-dot--lg{width:16px;height:16px;margin:-8px 0 0 -8px}
 
 /* ---- Research expeditions: Russia map (sticky, in the side column) ------ */
-html:not([data-page="home"]) main .section.expeditions:has(.sec-head){grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
+html:not([data-page="home"]) main .section.expeditions:has(.sec-head){grid-template-columns:minmax(0,3fr) minmax(0,8fr)}
 .ru-map{display:block;width:100%;max-width:520px;height:auto;margin-top:1.6rem}
-.ru-land{fill:none;stroke:var(--ink);stroke-opacity:.28;stroke-width:1;vector-effect:non-scaling-stroke}
-.exp-dot{fill:var(--ink);opacity:0;transform:scale(.4);transform-origin:center;transform-box:fill-box;transition:opacity .4s var(--ease),transform .4s var(--ease)}
-.exp-dot.on{opacity:1;transform:scale(1)}
-@media (max-width:880px){.ru-map{max-width:380px}}
+.ru-land{fill:none;stroke:var(--ink);stroke-opacity:.22;stroke-width:.8;vector-effect:non-scaling-stroke}
+.exp-region{fill:var(--ink);fill-opacity:0;transition:fill-opacity .5s var(--ease)}
+.exp-region.on{fill-opacity:.88}
+@media (max-width:880px){.ru-map{max-width:420px;margin-top:1rem}.section.expeditions>.sec-head{flex-direction:column;align-items:flex-start;gap:.5rem}}
+
+/* underline all text links except nav/buttons/volunteering (single underline, no double border) */
+.prose a,.numbered a,.foot-links a,.figcap a{border-bottom:0}

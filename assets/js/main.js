@@ -242,17 +242,125 @@
     tick(); setInterval(tick, 1000);
   })();
 
-  /* ---- expeditions: reveal Russia-map dots one-by-one on scroll ---- */
+  /* ---- header phyllotaxis mark (grows & turns clockwise on scroll) ---- */
+  (function () {
+    var nav = document.querySelector(".nav");
+    if (!nav) return;
+    var host = document.createElement("span");
+    host.className = "phyllo-mark";
+    host.setAttribute("aria-hidden", "true");
+    nav.appendChild(host);
+    var cv = document.createElement("canvas");
+    host.appendChild(cv);
+    var ctx = cv.getContext("2d");
+
+    var CFG = {
+      spacing: 3.0,        // px between seeds (smaller = denser grain)
+      dotFactor: 0.74,     // seed size vs spacing
+      fitRatio: 0.5,       // head radius vs the little box
+      twistDeg: 240,       // clockwise rotation across the scroll
+      scrollSpan: 1.0,     // grows over this many screen-heights
+      minP: 0.2,           // baseline so the mark is never empty at the top
+      fadeFrac: 0.08,      // soft growing edge
+      GA: 137.50776 * Math.PI / 180,
+      ease: 0.14
+    };
+    var TW = CFG.twistDeg * Math.PI / 180;
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function rgb(name, fb) {
+      var v = (getComputedStyle(root).getPropertyValue(name) || fb).trim() || fb;
+      v = v.replace("#", "");
+      if (v.length === 3) v = v[0] + v[0] + v[1] + v[1] + v[2] + v[2];
+      return [parseInt(v.substr(0, 2), 16), parseInt(v.substr(2, 2), 16), parseInt(v.substr(4, 2), 16)];
+    }
+    var C0, C1;
+    function readColors() { C0 = rgb("--ink", "#15140F"); C1 = rgb("--ink-2", "#6F6B62"); }
+    readColors();
+
+    var W = 0, H = 0, scale = 1, maxR = 1, N = 0, fw = 8, cur = 0, target = 0;
+    function resize() {
+      var r = host.getBoundingClientRect();
+      W = Math.round(r.width) || 40; H = Math.round(r.height) || 40;
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      cv.style.width = W + "px"; cv.style.height = H + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      maxR = Math.min(W, H) * CFG.fitRatio;
+      scale = CFG.spacing / 1.9;
+      N = Math.max(30, Math.round(Math.pow(maxR / scale, 2)));
+      fw = Math.max(6, Math.round(N * CFG.fadeFrac));
+    }
+    function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+    function smooth(t) { return t * t * (3 - 2 * t); }
+
+    function draw(p) {
+      ctx.clearRect(0, 0, W, H);
+      var cx = W / 2, cy = H / 2, revealed = p * N, count = Math.min(N, Math.ceil(revealed)), tw = p * TW;
+      for (var i = 0; i < count; i++) {
+        var raw = clamp((revealed - i) / fw, 0, 1); if (raw <= 0) continue;
+        var a = reduce ? 1 : smooth(raw);
+        var r = scale * Math.sqrt(i), n = r / maxR, ang = i * CFG.GA + tw;
+        var x = cx + r * Math.cos(ang), y = cy + r * Math.sin(ang);
+        var dot = scale * CFG.dotFactor * (reduce ? 1 : (0.45 + 0.55 * a));
+        var R = Math.round(C0[0] + (C1[0] - C0[0]) * n), G = Math.round(C0[1] + (C1[1] - C0[1]) * n), B = Math.round(C0[2] + (C1[2] - C0[2]) * n);
+        ctx.fillStyle = "rgba(" + R + "," + G + "," + B + "," + (a * 0.95).toFixed(3) + ")";
+        ctx.beginPath(); ctx.arc(x, y, dot, 0, 6.2831853); ctx.fill();
+      }
+    }
+    function progress() {
+      var span = CFG.scrollSpan * window.innerHeight;
+      var raw = span > 0 ? clamp(window.pageYOffset / span, 0, 1) : 0;
+      return CFG.minP + (1 - CFG.minP) * raw;
+    }
+
+    var running = false;
+    function frame() {
+      cur += (target - cur) * CFG.ease;
+      var moving = Math.abs(target - cur) >= 0.0006;
+      if (!moving) cur = target;
+      draw(cur);
+      running = moving; if (moving) requestAnimationFrame(frame);
+    }
+    function kick() { if (!running) { running = true; requestAnimationFrame(frame); } }
+
+    resize();
+    if (reduce) {
+      cur = target = 1; draw(1);
+      window.addEventListener("resize", function () { resize(); draw(1); });
+    } else {
+      cur = target = progress(); draw(cur);
+      window.addEventListener("scroll", function () { target = progress(); kick(); }, { passive: true });
+      window.addEventListener("resize", function () { resize(); target = progress(); cur = target; draw(cur); });
+    }
+    if (window.ResizeObserver) new ResizeObserver(function () { resize(); draw(cur); }).observe(host);
+
+    var mo = new MutationObserver(function () { readColors(); draw(cur); });
+    mo.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+    if (window.matchMedia) {
+      var mq = window.matchMedia("(prefers-color-scheme: dark)"), onmq = function () { readColors(); draw(cur); };
+      if (mq.addEventListener) mq.addEventListener("change", onmq); else if (mq.addListener) mq.addListener(onmq);
+    }
+  })();
+
+  /* ---- expeditions: light up each region as its row scrolls in ---- */
   var expRows = document.querySelectorAll(".expeditions .row2");
-  var expDots = document.querySelectorAll(".exp-dot");
-  if (expRows.length && expDots.length) {
+  var expRegions = document.querySelectorAll(".exp-region");
+  if (expRows.length && expRegions.length) {
     var expTick = false;
     var updateExp = function () {
       expTick = false;
       var triggerY = window.innerHeight * 0.85;
-      for (var i = 0; i < expRows.length && i < expDots.length; i++) {
+      var shown = {};
+      for (var i = 0; i < expRows.length; i++) {
         var r = expRows[i].getBoundingClientRect();
-        expDots[i].classList.toggle("on", (r.top + r.bottom) / 2 < triggerY);
+        if ((r.top + r.bottom) / 2 < triggerY) shown[i] = true;
+      }
+      for (var j = 0; j < expRegions.length; j++) {
+        var rows = (expRegions[j].getAttribute("data-rows") || "").split(/\s+/);
+        var on = false;
+        for (var k = 0; k < rows.length; k++) { if (shown[rows[k]]) { on = true; break; } }
+        expRegions[j].classList.toggle("on", on);
       }
     };
     var onExpScroll = function () { if (!expTick) { expTick = true; requestAnimationFrame(updateExp); } };
