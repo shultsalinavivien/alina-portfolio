@@ -244,9 +244,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .figcap a{color:var(--ink-2);border-bottom:1px solid transparent;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
 .figcap a:hover{color:var(--ink);border-color:var(--ink)}
 .panelgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem}
-.panelgrid img{width:100%;height:auto;display:block;border:1px solid var(--rule);filter:grayscale(1) contrast(1.03);cursor:zoom-in}
-@media (prefers-color-scheme:dark){:root:not([data-theme]) .panelgrid img{filter:grayscale(1) contrast(1.03) brightness(.85)}}
-:root[data-theme="dark"] .panelgrid img{filter:grayscale(1) contrast(1.03) brightness(.85)}
+.panelgrid img,.board img{width:100%;height:auto;display:block;border:1px solid var(--rule);filter:grayscale(1) contrast(1.03);cursor:zoom-in}
+.board{margin-top:.4rem}
+@media (prefers-color-scheme:dark){:root:not([data-theme]) .panelgrid img,:root:not([data-theme]) .board img{filter:grayscale(1) contrast(1.03) brightness(.85)}}
+:root[data-theme="dark"] .panelgrid img,:root[data-theme="dark"] .board img{filter:grayscale(1) contrast(1.03) brightness(.85)}
 
 /* lightbox — click a panel to see the full colour version */
 html.lb-open{overflow:hidden}

@@ -92,72 +92,95 @@
     });
   }
 
-  /* ---- Julia set (generative) ---- */
+  /* ---- Disintegrating bits (generative) ---- */
   (function () {
     var canvas = document.getElementById("julia-canvas");
     if (!canvas) return;
     var wrap = document.getElementById("julia");
     var hint = document.getElementById("julia-hint");
-    var glo = { alpha: true, premultipliedAlpha: false };
-    var gl = canvas.getContext("webgl", glo) || canvas.getContext("experimental-webgl", glo);
-    if (!gl) { if (hint) hint.textContent = "WebGL not supported"; return; }
-    var vertSrc = "attribute vec2 p; void main(){ gl_Position = vec4(p,0.0,1.0); }";
-    var fragSrc = [
-      "precision highp float;",
-      "uniform vec2 u_res; uniform vec2 u_c;",
-      "void main(){",
-      "  vec2 uv = (gl_FragCoord.xy - 0.5*u_res)/min(u_res.x,u_res.y);",
-      "  uv *= 2.6;",
-      "  vec2 z = uv; vec2 c = u_c; const float MAX = 180.0; float n = 0.0;",
-      "  for(int i=0;i<180;i++){",
-      "    z = vec2(z.x*z.x - z.y*z.y, 2.0*z.x*z.y) + c;",
-      "    if(dot(z,z) > 64.0) break;",
-      "    n += 1.0;",
-      "  }",
-      "  if(n >= MAX){ gl_FragColor = vec4(0.0,0.0,0.0,1.0); return; }",
-      "  float sn = n + 1.0 - log(log(sqrt(dot(z,z))))/log(2.0);",
-      "  float t = clamp(sn/40.0, 0.0, 1.0);",
-      "  float g = pow(1.0 - t, 0.85);",
-      "  gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0 - g);",
-      "}"
-    ].join("\n");
-    function compile(t, s) { var sh = gl.createShader(t); gl.shaderSource(sh, s); gl.compileShader(sh); return sh; }
-    var prog = gl.createProgram();
-    gl.attachShader(prog, compile(gl.VERTEX_SHADER, vertSrc));
-    gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fragSrc));
-    gl.linkProgram(prog); gl.useProgram(prog);
-    var buf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-    var loc = gl.getAttribLocation(prog, "p");
-    gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-    var uRes = gl.getUniformLocation(prog, "u_res"), uC = gl.getUniformLocation(prog, "u_c");
-    function resize() {
-      var dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.max(1, Math.floor(wrap.clientWidth * dpr));
-      canvas.height = Math.max(1, Math.floor(wrap.clientHeight * dpr));
-      gl.viewport(0, 0, canvas.width, canvas.height);
+    var ctx = canvas.getContext("2d");
+    if (!ctx) { if (hint) hint.textContent = "Canvas not supported"; return; }
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    var W = 0, H = 0, dpr = 1, cx = 0, cy = 0, rx = 0, ry = 0;
+    var BIT = 4;            // size of each bit (css px)
+    var bits = [];
+
+    function mask(x, y) {   // feathered elliptical mass, 0..1
+      var dx = (x - cx) / rx, dy = (y - cy) / ry, d = dx * dx + dy * dy;
+      return d >= 1 ? 0 : Math.pow(1 - d, 0.62);
     }
+    function build() {
+      bits = [];
+      cx = W * 0.5; cy = H * 0.5;
+      rx = Math.min(W * 0.32, 300); ry = Math.min(H * 0.34, 185);
+      var step = BIT + 4;
+      for (var y = cy - ry; y <= cy + ry; y += step) {
+        for (var x = cx - rx; x <= cx + rx; x += step) {
+          var m = mask(x + (Math.random() - 0.5) * 3, y + (Math.random() - 0.5) * 3);
+          if (m <= 0 || Math.random() > m * 0.96 + 0.04) continue;
+          bits.push({ hx: x, hy: y, x: x, y: y, vx: 0, vy: 0, a: 1, m: m, fly: 0 });
+        }
+      }
+    }
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = wrap.clientWidth; H = wrap.clientHeight;
+      canvas.width = Math.max(1, Math.floor(W * dpr));
+      canvas.height = Math.max(1, Math.floor(H * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      build();
+      draw(true);   // paint an immediate static frame (rAF animates on top when visible)
+    }
+
+    var mx = -1e4, my = -1e4, active = false, t = 0;
+    function setPoint(px, py) {
+      var r = wrap.getBoundingClientRect();
+      mx = px - r.left; my = py - r.top; active = true;
+      if (hint) hint.style.opacity = "0";
+    }
+    wrap.addEventListener("mousemove", function (e) { setPoint(e.clientX, e.clientY); });
+    wrap.addEventListener("mouseleave", function () { active = false; });
+    wrap.addEventListener("touchmove", function (e) { if (e.touches[0]) setPoint(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+
+    function detach(b, dirx, diry, boost) {
+      var len = Math.sqrt(dirx * dirx + diry * diry) || 1, sp = (0.35 + Math.random() * 0.8) * (boost || 1);
+      b.vx = (dirx / len) * sp + (Math.random() - 0.5) * 0.3;
+      b.vy = (diry / len) * sp - 0.35 + (Math.random() - 0.5) * 0.3;   // slight upward drift
+      b.fly = 1; b.a = 0.95;
+    }
+    function draw(stat) {
+      t += 0.01;
+      ctx.clearRect(0, 0, W, H);
+      for (var i = 0; i < bits.length; i++) {
+        var b = bits[i], alpha;
+        if (b.fly === 0) {
+          var jx = Math.sin(t * 1.3 + b.hx * 0.05) * 0.5, jy = Math.cos(t * 1.1 + b.hy * 0.05) * 0.5;
+          b.x = b.hx + jx; b.y = b.hy + jy;
+          if (stat !== true) {
+            if (Math.random() < (1 - b.m) * 0.0035) detach(b, b.hx - cx, b.hy - cy, 1);
+            if (active) {
+              var ex = b.x - mx, ey = b.y - my;
+              if (ex * ex + ey * ey < 6400) detach(b, ex, ey, 1.7);
+            }
+          }
+          alpha = 0.2 + b.m * 0.66;
+        } else {
+          b.x += b.vx; b.y += b.vy; b.vy += 0.02; b.vx *= 0.99; b.vy *= 0.99;
+          b.a -= 0.012;
+          if (b.a <= 0) { b.fly = 0; b.a = 1; b.x = b.hx; b.y = b.hy; }
+          alpha = b.a * 0.85;
+        }
+        ctx.fillStyle = "rgba(0,0,0," + (alpha < 0 ? 0 : alpha).toFixed(3) + ")";
+        ctx.fillRect(b.x - BIT / 2, b.y - BIT / 2, BIT, BIT);
+      }
+      if (stat !== true) requestAnimationFrame(draw);
+    }
+
     window.addEventListener("resize", resize);
     if (window.ResizeObserver) new ResizeObserver(resize).observe(wrap);
     resize();
-    var target = { x: -0.74, y: 0.18 }, cur = { x: -0.74, y: 0.18 };
-    function setFromPoint(x, y) {
-      var r = wrap.getBoundingClientRect();
-      var mx = (x - r.left) / r.width, my = (y - r.top) / r.height;
-      target.x = -0.85 + mx * 1.25; target.y = 0.45 - my * 0.90;
-      if (hint) hint.style.opacity = "0";
-    }
-    wrap.addEventListener("mousemove", function (e) { setFromPoint(e.clientX, e.clientY); });
-    wrap.addEventListener("touchmove", function (e) { if (e.touches[0]) setFromPoint(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
-    function frame() {
-      cur.x += (target.x - cur.x) * 0.05; cur.y += (target.y - cur.y) * 0.05;
-      gl.uniform2f(uRes, canvas.width, canvas.height);
-      gl.uniform2f(uC, cur.x, cur.y);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
-      requestAnimationFrame(frame);
-    }
-    requestAnimationFrame(frame);
+    if (reduce) draw(true); else requestAnimationFrame(draw);
   })();
 
   /* ---- skills chips: invert while passing the viewport centre ---- */
@@ -398,7 +421,7 @@
 
   /* ---- panel lightbox (click a B&W panel → zoom the colour version) ---- */
   (function () {
-    var triggers = document.querySelectorAll(".panelgrid img[data-zoom]");
+    var triggers = document.querySelectorAll("[data-zoom]");
     if (!triggers.length) return;
     var box, imgEl, lastFocus;
     function build() {
