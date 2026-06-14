@@ -1481,11 +1481,10 @@
       zoomControl: true
     }).setView([50.2, 1.5], 5);
 
-    L.tileLayer("https://api.mapbox.com/styles/v1/kuttin29/cmnyoapd8000q01sg3cjeh5mk/tiles/512/{z}/{x}/{y}?access_token=MAPBOX_TOKEN_PLACEHOLDER", {
-      tileSize: 512,
-      zoomOffset: -1,
-      maxZoom: 18,
-      attribution: '&copy; Mapbox &copy; OpenStreetMap'
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      subdomains: 'abcd',
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
     }).addTo(map);
 
     let currentEmotion = "Joy";
