@@ -442,6 +442,48 @@
     });
   })();
 
+  /* ---- flipbook (page through the embedded brandbook as images) ---- */
+  (function () {
+    var books = document.querySelectorAll(".flipbook");
+    if (!books.length) return;
+    [].slice.call(books).forEach(function (book) {
+      var base = book.getAttribute("data-flip-base");
+      var ext = book.getAttribute("data-flip-ext") || ".jpg";
+      var count = parseInt(book.getAttribute("data-flip-count"), 10) || 1;
+      var page = book.querySelector(".flip__page");
+      var prev = book.querySelector(".flip__prev");
+      var next = book.querySelector(".flip__next");
+      var counter = book.querySelector(".flip__count");
+      var stage = book.querySelector(".flip__stage");
+      var i = 1;
+      function src(n) { return base + n + ext; }
+      function preload(n) { if (n >= 1 && n <= count) { (new Image()).src = src(n); } }
+      function render() {
+        page.src = src(i);
+        page.alt = "Khabarovsk brandbook — page " + i;
+        if (counter) counter.textContent = i + " / " + count;
+        prev.disabled = i <= 1; next.disabled = i >= count;
+        preload(i + 1); preload(i - 1);
+      }
+      function go(n) { n = Math.min(count, Math.max(1, n)); if (n !== i) { i = n; render(); } }
+      prev.addEventListener("click", function () { go(i - 1); });
+      next.addEventListener("click", function () { go(i + 1); });
+      stage.addEventListener("keydown", function (e) {
+        if (e.key === "ArrowLeft") { go(i - 1); e.preventDefault(); }
+        else if (e.key === "ArrowRight") { go(i + 1); e.preventDefault(); }
+      });
+      var x0 = null;
+      stage.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+      stage.addEventListener("touchend", function (e) {
+        if (x0 == null) return;
+        var dx = e.changedTouches[0].clientX - x0;
+        if (Math.abs(dx) > 40) go(i + (dx < 0 ? 1 : -1));
+        x0 = null;
+      }, { passive: true });
+      render();
+    });
+  })();
+
   /* ---- footer year ---- */
   var yr = new Date().getFullYear();
   document.querySelectorAll("[data-year]").forEach(function (e) { e.textContent = yr; });

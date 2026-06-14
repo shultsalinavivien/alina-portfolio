@@ -256,6 +256,19 @@ html.lb-open{overflow:hidden}
 .lightbox__close{position:absolute;top:14px;right:18px;width:40px;height:40px;font-size:30px;line-height:1;color:#fff;background:none;border:0;opacity:.85;cursor:pointer}
 .lightbox__close:hover{opacity:1}
 
+/* flipbook — page through the embedded brandbook */
+.flipbook{margin-top:.4rem}
+.flip__stage{position:relative;border:1px solid var(--rule);background:var(--field);outline:none}
+.flip__stage:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.flip__page{display:block;width:100%;height:auto;user-select:none}
+.flip__btn{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:1px solid var(--rule);background:var(--paper);color:var(--ink);font-size:1.4rem;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.9;transition:opacity var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
+.flip__prev{left:10px}
+.flip__next{right:10px}
+.flip__btn:hover{opacity:1;border-color:var(--ink-2)}
+.flip__btn:disabled{opacity:.25;cursor:default}
+.flip__cap{display:flex;justify-content:space-between;gap:1rem;align-items:baseline}
+.flip__count{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+
 /* embedded video (16:9, same frame as .plate) */
 .video{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--rule);background:var(--field);overflow:hidden}
 .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
