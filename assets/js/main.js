@@ -396,6 +396,52 @@
     });
   });
 
+  /* ---- panel lightbox (click a B&W panel → zoom the colour version) ---- */
+  (function () {
+    var triggers = document.querySelectorAll(".panelgrid img[data-zoom]");
+    if (!triggers.length) return;
+    var box, imgEl, lastFocus;
+    function build() {
+      box = document.createElement("div");
+      box.className = "lightbox";
+      box.setAttribute("role", "dialog");
+      box.setAttribute("aria-modal", "true");
+      box.setAttribute("aria-label", "Panel preview");
+      box.hidden = true;
+      imgEl = document.createElement("img");
+      imgEl.className = "lightbox__img";   /* colour: no grayscale filter here */
+      imgEl.alt = "";
+      box.appendChild(imgEl);
+      var close = document.createElement("button");
+      close.type = "button";
+      close.className = "lightbox__close";
+      close.setAttribute("aria-label", "Close");
+      close.textContent = "×";
+      box.appendChild(close);
+      document.body.appendChild(box);
+      box.addEventListener("click", function (e) { if (e.target === box || e.target === close) hide(); });
+    }
+    function show(src, alt) {
+      if (!box) build();
+      imgEl.src = src; imgEl.alt = alt || "";
+      box.hidden = false;
+      root.classList.add("lb-open");
+      lastFocus = document.activeElement;
+      box.querySelector(".lightbox__close").focus();
+    }
+    function hide() {
+      if (!box || box.hidden) return;
+      box.hidden = true;
+      imgEl.removeAttribute("src");
+      root.classList.remove("lb-open");
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") hide(); });
+    [].slice.call(triggers).forEach(function (im) {
+      im.addEventListener("click", function () { show(im.getAttribute("data-zoom"), im.alt); });
+    });
+  })();
+
   /* ---- footer year ---- */
   var yr = new Date().getFullYear();
   document.querySelectorAll("[data-year]").forEach(function (e) { e.textContent = yr; });

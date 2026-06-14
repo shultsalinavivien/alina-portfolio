@@ -244,9 +244,17 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .figcap a{color:var(--ink-2);border-bottom:1px solid transparent;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
 .figcap a:hover{color:var(--ink);border-color:var(--ink)}
 .panelgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem}
-.panelgrid img{width:100%;height:auto;display:block;border:1px solid var(--rule);filter:grayscale(1) contrast(1.03)}
+.panelgrid img{width:100%;height:auto;display:block;border:1px solid var(--rule);filter:grayscale(1) contrast(1.03);cursor:zoom-in}
 @media (prefers-color-scheme:dark){:root:not([data-theme]) .panelgrid img{filter:grayscale(1) contrast(1.03) brightness(.85)}}
 :root[data-theme="dark"] .panelgrid img{filter:grayscale(1) contrast(1.03) brightness(.85)}
+
+/* lightbox — click a panel to see the full colour version */
+html.lb-open{overflow:hidden}
+.lightbox{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:clamp(1rem,4vw,3.5rem);background:rgba(8,8,7,.92);cursor:zoom-out}
+.lightbox[hidden]{display:none}
+.lightbox__img{max-width:100%;max-height:100%;width:auto;height:auto;border:1px solid rgba(255,255,255,.18);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.lightbox__close{position:absolute;top:14px;right:18px;width:40px;height:40px;font-size:30px;line-height:1;color:#fff;background:none;border:0;opacity:.85;cursor:pointer}
+.lightbox__close:hover{opacity:1}
 
 /* embedded video (16:9, same frame as .plate) */
 .video{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--rule);background:var(--field);overflow:hidden}
@@ -371,10 +379,11 @@ html:not([data-page="home"]) main .section.expeditions:has(.sec-head){grid-templ
 
 /* underline all text links except nav/buttons/volunteering (single underline, no double border) */
 .prose a,.numbered a,.foot-links a,.figcap a{border-bottom:0}
-/* ---- Work project figures: small images tucked into the heading column ---- */
-.workfig{margin-top:1.4rem;margin-bottom:.2rem}
-.workfig img{display:block;width:100%;height:auto;border:1px solid var(--rule);filter:grayscale(1)}
-.workfig .figcap{margin-top:.5rem}
-.workfig--sq{max-width:200px}      /* Basquiat — square */
-.workfig--tall{max-width:160px}    /* Garden — tall ASCII */
-.workfig--wide{max-width:255px}    /* SoHo — landscape */
+/* ---- Work project rows: name | description | photo (3-column Swiss grid) ---- */
+.workfig{display:block;width:100%;height:auto;border:1px solid var(--rule);filter:grayscale(1)}
+@media (max-width:879.98px){.workfig{margin-top:1.2rem;max-width:300px}}
+@media (min-width:880px){
+  html:not([data-page="home"]) main .section.project3:has(.sec-head){grid-template-columns:minmax(0,3fr) minmax(0,5fr) minmax(0,3fr)}
+  html:not([data-page="home"]) main .section.project3:has(.sec-head) > .workfig{grid-column:3}
+  html:not([data-page="home"]) main .section.project3:has(.sec-head) > .sec-head{position:static}
+}
