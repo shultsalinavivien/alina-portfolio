@@ -105,7 +105,7 @@
       "uniform vec2 u_res; uniform vec2 u_c;",
       "void main(){",
       "  vec2 uv = (gl_FragCoord.xy - 0.5*u_res)/min(u_res.x,u_res.y);",
-      "  uv *= 2.6;",
+      "  uv *= 1.8;",
       "  vec2 z = uv; vec2 c = u_c; const float MAX = 180.0; float n = 0.0;",
       "  for(int i=0;i<180;i++){",
       "    z = vec2(z.x*z.x - z.y*z.y, 2.0*z.x*z.y) + c;",
@@ -141,13 +141,12 @@
     resize();
     var target = { x: -0.74, y: 0.18 }, cur = { x: -0.74, y: 0.18 };
     function setFromPoint(x, y) {
-      var r = wrap.getBoundingClientRect();
-      var mx = (x - r.left) / r.width, my = (y - r.top) / r.height;
+      var mx = x / window.innerWidth, my = y / window.innerHeight;
       target.x = -0.85 + mx * 1.25; target.y = 0.45 - my * 0.90;
       if (hint) hint.style.opacity = "0";
     }
-    wrap.addEventListener("mousemove", function (e) { setFromPoint(e.clientX, e.clientY); });
-    wrap.addEventListener("touchmove", function (e) { if (e.touches[0]) setFromPoint(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+    window.addEventListener("mousemove", function (e) { setFromPoint(e.clientX, e.clientY); });
+    window.addEventListener("touchmove", function (e) { if (e.touches[0]) setFromPoint(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
     function frame() {
       cur.x += (target.x - cur.x) * 0.05; cur.y += (target.y - cur.y) * 0.05;
       gl.uniform2f(uRes, canvas.width, canvas.height);
