@@ -258,8 +258,7 @@
       spacing: 3.0,        // px between seeds (smaller = denser grain)
       dotFactor: 0.74,     // seed size vs spacing
       fitRatio: 0.5,       // head radius vs the little box
-      twistDeg: 240,       // clockwise rotation across the scroll
-      scrollSpan: 1.0,     // grows over this many screen-heights
+      twistDeg: 240,       // clockwise rotation; fully turned at the page bottom
       minP: 0.2,           // baseline so the mark is never empty at the top
       fadeFrac: 0.08,      // soft growing edge
       GA: 137.50776 * Math.PI / 180,
@@ -280,8 +279,12 @@
 
     var W = 0, H = 0, scale = 1, maxR = 1, N = 0, fw = 8, cur = 0, target = 0;
     function resize() {
+      var tgl = document.querySelector(".theme-toggle");          // match the Dark/Light button's box
+      var box = tgl ? Math.round(tgl.getBoundingClientRect().height) : 0;
+      if (box < 8) box = 32;                                      // fallback before the button lays out
+      host.style.width = box + "px"; host.style.height = box + "px";
       var r = host.getBoundingClientRect();
-      W = Math.round(r.width) || 40; H = Math.round(r.height) || 40;
+      W = Math.round(r.width) || box; H = Math.round(r.height) || box;
       var dpr = Math.min(window.devicePixelRatio || 1, 2);
       cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
       cv.style.width = W + "px"; cv.style.height = H + "px";
@@ -309,8 +312,8 @@
       }
     }
     function progress() {
-      var span = CFG.scrollSpan * window.innerHeight;
-      var raw = span > 0 ? clamp(window.pageYOffset / span, 0, 1) : 0;
+      var max = document.documentElement.scrollHeight - window.innerHeight;   // full page
+      var raw = max > 0 ? clamp(window.pageYOffset / max, 0, 1) : 0;           // 100% only at the very bottom
       return CFG.minP + (1 - CFG.minP) * raw;
     }
 
@@ -333,7 +336,12 @@
       window.addEventListener("scroll", function () { target = progress(); kick(); }, { passive: true });
       window.addEventListener("resize", function () { resize(); target = progress(); cur = target; draw(cur); });
     }
-    if (window.ResizeObserver) new ResizeObserver(function () { resize(); draw(cur); }).observe(host);
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(function () { resize(); draw(cur); });
+      ro.observe(host);
+      var tgl0 = document.querySelector(".theme-toggle");
+      if (tgl0) ro.observe(tgl0);                                 // re-fit if the button resizes (font load)
+    }
 
     var mo = new MutationObserver(function () { readColors(); draw(cur); });
     mo.observe(root, { attributes: true, attributeFilter: ["data-theme"] });

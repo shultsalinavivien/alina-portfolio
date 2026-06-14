@@ -134,7 +134,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   color:var(--ink-2);display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);
   padding:6px 10px;border-radius:4px;transition:border-color var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
 .theme-toggle:hover{color:var(--ink);border-color:var(--ink-2)}
-.phyllo-mark{flex:0 0 auto;width:40px;height:40px;line-height:0;pointer-events:none;align-self:center}
+.phyllo-mark{flex:0 0 auto;width:32px;height:32px;line-height:0;pointer-events:none;align-self:center}
 .phyllo-mark canvas{display:block}
 @media (max-width:760px){.phyllo-mark{display:none}}
 .nav-toggle{display:none}
