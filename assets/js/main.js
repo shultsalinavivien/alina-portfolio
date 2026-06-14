@@ -96,7 +96,8 @@
     if (!canvas) return;
     var wrap = document.getElementById("julia");
     var hint = document.getElementById("julia-hint");
-    var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    var glo = { alpha: true, premultipliedAlpha: false };
+    var gl = canvas.getContext("webgl", glo) || canvas.getContext("experimental-webgl", glo);
     if (!gl) { if (hint) hint.textContent = "WebGL not supported"; return; }
     var vertSrc = "attribute vec2 p; void main(){ gl_Position = vec4(p,0.0,1.0); }";
     var fragSrc = [
@@ -111,14 +112,11 @@
       "    if(dot(z,z) > 64.0) break;",
       "    n += 1.0;",
       "  }",
-      "  if(n >= MAX){ gl_FragColor = vec4(vec3(0.04),1.0); return; }",
+      "  if(n >= MAX){ gl_FragColor = vec4(0.0,0.0,0.0,1.0); return; }",
       "  float sn = n + 1.0 - log(log(sqrt(dot(z,z))))/log(2.0);",
       "  float t = clamp(sn/40.0, 0.0, 1.0);",
       "  float g = pow(1.0 - t, 0.85);",
-      "  vec3 col = vec3(g);",
-      "  float vig = smoothstep(2.0,0.15,length(uv));",
-      "  col *= 0.88 + 0.12*vig;",
-      "  gl_FragColor = vec4(col,1.0);",
+      "  gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0 - g);",
       "}"
     ].join("\n");
     function compile(t, s) { var sh = gl.createShader(t); gl.shaderSource(sh, s); gl.compileShader(sh); return sh; }
