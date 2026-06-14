@@ -134,8 +134,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   color:var(--ink-2);display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);
   padding:6px 10px;border-radius:4px;transition:border-color var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
 .theme-toggle:hover{color:var(--ink);border-color:var(--ink-2)}
-.phyllo-mark{flex:0 0 auto;width:32px;height:32px;line-height:0;pointer-events:none;align-self:center}
-.phyllo-mark canvas{display:block}
+.phyllo-mark{flex:0 0 auto;display:inline-flex;width:32px;height:32px;padding:0;border:0;line-height:0;align-self:center;cursor:pointer}
+.phyllo-mark canvas{display:block;pointer-events:none}
 @media (max-width:760px){.phyllo-mark{display:none}}
 .nav-toggle{display:none}
 
@@ -247,6 +247,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* embedded video (16:9, same frame as .plate) */
 .video{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--rule);background:var(--field);overflow:hidden}
 .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.video__btn{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;background:var(--field);cursor:pointer;display:block}
+.video__poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.video__play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:62px;height:62px;border-radius:50%;background:color-mix(in srgb,var(--paper) 80%,transparent);border:1px solid var(--rule);box-shadow:0 2px 14px rgba(0,0,0,.18);display:grid;place-items:center;transition:background var(--dur-fast) var(--ease),transform var(--dur-fast) var(--ease)}
+.video__play::after{content:"";width:0;height:0;margin-left:3px;border-style:solid;border-width:9px 0 9px 15px;border-color:transparent transparent transparent var(--ink)}
+.video__btn:hover .video__play,.video__btn:focus-visible .video__play{background:var(--paper);transform:translate(-50%,-50%) scale(1.07)}
+.video__btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 
 /* Media placeholders — hidden until real assets arrive */
 figure:has(.plate__tag){display:none}

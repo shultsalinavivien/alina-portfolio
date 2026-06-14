@@ -246,9 +246,10 @@
   (function () {
     var nav = document.querySelector(".nav");
     if (!nav) return;
-    var host = document.createElement("span");
+    var host = document.createElement("a");          // clickable → home
     host.className = "phyllo-mark";
-    host.setAttribute("aria-hidden", "true");
+    host.href = "index.html";
+    host.setAttribute("aria-label", "Home");
     nav.appendChild(host);
     var cv = document.createElement("canvas");
     host.appendChild(cv);
@@ -259,7 +260,7 @@
       dotFactor: 0.74,     // seed size vs spacing
       fitRatio: 0.5,       // head radius vs the little box
       twistDeg: 240,       // clockwise rotation; fully turned at the page bottom
-      minP: 0.2,           // baseline so the mark is never empty at the top
+      minSeeds: 1,         // starts from a single small dot at the top of the page
       fadeFrac: 0.08,      // soft growing edge
       GA: 137.50776 * Math.PI / 180,
       ease: 0.14
@@ -299,22 +300,24 @@
 
     function draw(p) {
       ctx.clearRect(0, 0, W, H);
-      var cx = W / 2, cy = H / 2, revealed = p * N, count = Math.min(N, Math.ceil(revealed)), tw = p * TW;
+      var cx = W / 2, cy = H / 2;
+      var revealed = CFG.minSeeds + (N - CFG.minSeeds) * p;     // one dot at p=0, full head at p=1
+      var count = Math.min(N, Math.ceil(revealed)), tw = p * TW;
       for (var i = 0; i < count; i++) {
-        var raw = clamp((revealed - i) / fw, 0, 1); if (raw <= 0) continue;
-        var a = reduce ? 1 : smooth(raw);
+        var edge = revealed - i; if (edge <= 0) continue;
+        var op = reduce ? 1 : clamp(edge, 0, 1);               // opacity: solid once born (1-seed AA)
+        var sz = reduce ? 1 : (0.45 + 0.55 * smooth(clamp(edge / fw, 0, 1)));  // size eases in
         var r = scale * Math.sqrt(i), n = r / maxR, ang = i * CFG.GA + tw;
         var x = cx + r * Math.cos(ang), y = cy + r * Math.sin(ang);
-        var dot = scale * CFG.dotFactor * (reduce ? 1 : (0.45 + 0.55 * a));
+        var dot = scale * CFG.dotFactor * sz;
         var R = Math.round(C0[0] + (C1[0] - C0[0]) * n), G = Math.round(C0[1] + (C1[1] - C0[1]) * n), B = Math.round(C0[2] + (C1[2] - C0[2]) * n);
-        ctx.fillStyle = "rgba(" + R + "," + G + "," + B + "," + (a * 0.95).toFixed(3) + ")";
+        ctx.fillStyle = "rgba(" + R + "," + G + "," + B + "," + (op * 0.95).toFixed(3) + ")";
         ctx.beginPath(); ctx.arc(x, y, dot, 0, 6.2831853); ctx.fill();
       }
     }
     function progress() {
       var max = document.documentElement.scrollHeight - window.innerHeight;   // full page
-      var raw = max > 0 ? clamp(window.pageYOffset / max, 0, 1) : 0;           // 100% only at the very bottom
-      return CFG.minP + (1 - CFG.minP) * raw;
+      return max > 0 ? clamp(window.pageYOffset / max, 0, 1) : 0;             // 0 at top → 1 only at the very bottom
     }
 
     var running = false;
@@ -349,6 +352,7 @@
       var mq = window.matchMedia("(prefers-color-scheme: dark)"), onmq = function () { readColors(); draw(cur); };
       if (mq.addEventListener) mq.addEventListener("change", onmq); else if (mq.addListener) mq.addListener(onmq);
     }
+    window.__phylloDraw = draw;  /* TEMP debug hook — removed after verification */
   })();
 
   /* ---- expeditions: light up each region as its row scrolls in ---- */
@@ -376,6 +380,22 @@
     window.addEventListener("resize", onExpScroll);
     updateExp();
   }
+
+  /* ---- click-to-play video facade (no YouTube chrome on the cover) ---- */
+  document.querySelectorAll(".video__btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var id = btn.getAttribute("data-yt");
+      if (!id) return;
+      var box = btn.closest(".video");
+      var f = document.createElement("iframe");
+      f.src = "https://www.youtube-nocookie.com/embed/" + id + "?autoplay=1&rel=0&playsinline=1&modestbranding=1";
+      f.title = btn.getAttribute("aria-label") || "Video";
+      f.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share");
+      f.setAttribute("allowfullscreen", "");
+      box.innerHTML = "";
+      box.appendChild(f);
+    });
+  });
 
   /* ---- footer year ---- */
   var yr = new Date().getFullYear();
