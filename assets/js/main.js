@@ -92,98 +92,159 @@
     });
   }
 
-  /* ---- Disintegrating bits (generative) ---- */
+  /* ---- Julia set (generative) ---- */
   (function () {
     var canvas = document.getElementById("julia-canvas");
     if (!canvas) return;
     var wrap = document.getElementById("julia");
     var hint = document.getElementById("julia-hint");
-    var ctx = canvas.getContext("2d");
-    if (!ctx) { if (hint) hint.textContent = "Canvas not supported"; return; }
-    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    var W = 0, H = 0, dpr = 1, cx = 0, cy = 0, rx = 0, ry = 0;
-    var BIT = 4;            // size of each bit (css px)
-    var bits = [];
-
-    function mask(x, y) {   // feathered elliptical mass, 0..1
-      var dx = (x - cx) / rx, dy = (y - cy) / ry, d = dx * dx + dy * dy;
-      return d >= 1 ? 0 : Math.pow(1 - d, 0.62);
-    }
-    function build() {
-      bits = [];
-      cx = W * 0.5; cy = H * 0.5;
-      rx = Math.min(W * 0.32, 300); ry = Math.min(H * 0.34, 185);
-      var step = BIT + 4;
-      for (var y = cy - ry; y <= cy + ry; y += step) {
-        for (var x = cx - rx; x <= cx + rx; x += step) {
-          var m = mask(x + (Math.random() - 0.5) * 3, y + (Math.random() - 0.5) * 3);
-          if (m <= 0 || Math.random() > m * 0.96 + 0.04) continue;
-          bits.push({ hx: x, hy: y, x: x, y: y, vx: 0, vy: 0, a: 1, m: m, fly: 0 });
-        }
-      }
-    }
+    var glo = { alpha: true, premultipliedAlpha: false };
+    var gl = canvas.getContext("webgl", glo) || canvas.getContext("experimental-webgl", glo);
+    if (!gl) { if (hint) hint.textContent = "WebGL not supported"; return; }
+    var vertSrc = "attribute vec2 p; void main(){ gl_Position = vec4(p,0.0,1.0); }";
+    var fragSrc = [
+      "precision highp float;",
+      "uniform vec2 u_res; uniform vec2 u_c;",
+      "void main(){",
+      "  vec2 uv = (gl_FragCoord.xy - 0.5*u_res)/min(u_res.x,u_res.y);",
+      "  uv *= 2.6;",
+      "  vec2 z = uv; vec2 c = u_c; const float MAX = 180.0; float n = 0.0;",
+      "  for(int i=0;i<180;i++){",
+      "    z = vec2(z.x*z.x - z.y*z.y, 2.0*z.x*z.y) + c;",
+      "    if(dot(z,z) > 64.0) break;",
+      "    n += 1.0;",
+      "  }",
+      "  if(n >= MAX){ gl_FragColor = vec4(0.0,0.0,0.0,1.0); return; }",
+      "  float sn = n + 1.0 - log(log(sqrt(dot(z,z))))/log(2.0);",
+      "  float t = clamp(sn/40.0, 0.0, 1.0);",
+      "  float g = pow(1.0 - t, 0.85);",
+      "  gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0 - g);",
+      "}"
+    ].join("\n");
+    function compile(t, s) { var sh = gl.createShader(t); gl.shaderSource(sh, s); gl.compileShader(sh); return sh; }
+    var prog = gl.createProgram();
+    gl.attachShader(prog, compile(gl.VERTEX_SHADER, vertSrc));
+    gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fragSrc));
+    gl.linkProgram(prog); gl.useProgram(prog);
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(prog, "p");
+    gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    var uRes = gl.getUniformLocation(prog, "u_res"), uC = gl.getUniformLocation(prog, "u_c");
     function resize() {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      W = wrap.clientWidth; H = wrap.clientHeight;
-      canvas.width = Math.max(1, Math.floor(W * dpr));
-      canvas.height = Math.max(1, Math.floor(H * dpr));
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      build();
-      draw(true);   // paint an immediate static frame (rAF animates on top when visible)
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.max(1, Math.floor(wrap.clientWidth * dpr));
+      canvas.height = Math.max(1, Math.floor(wrap.clientHeight * dpr));
+      gl.viewport(0, 0, canvas.width, canvas.height);
     }
-
-    var mx = -1e4, my = -1e4, active = false, t = 0;
-    function setPoint(px, py) {
-      var r = wrap.getBoundingClientRect();
-      mx = px - r.left; my = py - r.top; active = true;
-      if (hint) hint.style.opacity = "0";
-    }
-    wrap.addEventListener("mousemove", function (e) { setPoint(e.clientX, e.clientY); });
-    wrap.addEventListener("mouseleave", function () { active = false; });
-    wrap.addEventListener("touchmove", function (e) { if (e.touches[0]) setPoint(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
-
-    function detach(b, dirx, diry, boost) {
-      var len = Math.sqrt(dirx * dirx + diry * diry) || 1, sp = (0.35 + Math.random() * 0.8) * (boost || 1);
-      b.vx = (dirx / len) * sp + (Math.random() - 0.5) * 0.3;
-      b.vy = (diry / len) * sp - 0.35 + (Math.random() - 0.5) * 0.3;   // slight upward drift
-      b.fly = 1; b.a = 0.95;
-    }
-    function draw(stat) {
-      t += 0.01;
-      ctx.clearRect(0, 0, W, H);
-      for (var i = 0; i < bits.length; i++) {
-        var b = bits[i], alpha;
-        if (b.fly === 0) {
-          var jx = Math.sin(t * 1.3 + b.hx * 0.05) * 0.5, jy = Math.cos(t * 1.1 + b.hy * 0.05) * 0.5;
-          b.x = b.hx + jx; b.y = b.hy + jy;
-          if (stat !== true) {
-            if (Math.random() < (1 - b.m) * 0.0035) detach(b, b.hx - cx, b.hy - cy, 1);
-            if (active) {
-              var ex = b.x - mx, ey = b.y - my;
-              if (ex * ex + ey * ey < 6400) detach(b, ex, ey, 1.7);
-            }
-          }
-          alpha = 0.2 + b.m * 0.66;
-        } else {
-          b.x += b.vx; b.y += b.vy; b.vy += 0.02; b.vx *= 0.99; b.vy *= 0.99;
-          b.a -= 0.012;
-          if (b.a <= 0) { b.fly = 0; b.a = 1; b.x = b.hx; b.y = b.hy; }
-          alpha = b.a * 0.85;
-        }
-        ctx.fillStyle = "rgba(0,0,0," + (alpha < 0 ? 0 : alpha).toFixed(3) + ")";
-        ctx.fillRect(b.x - BIT / 2, b.y - BIT / 2, BIT, BIT);
-      }
-      if (stat !== true) requestAnimationFrame(draw);
-    }
-
     window.addEventListener("resize", resize);
     if (window.ResizeObserver) new ResizeObserver(resize).observe(wrap);
     resize();
-    if (reduce) draw(true); else requestAnimationFrame(draw);
+    var target = { x: -0.74, y: 0.18 }, cur = { x: -0.74, y: 0.18 };
+    function setFromPoint(x, y) {
+      var r = wrap.getBoundingClientRect();
+      var mx = (x - r.left) / r.width, my = (y - r.top) / r.height;
+      target.x = -0.85 + mx * 1.25; target.y = 0.45 - my * 0.90;
+      if (hint) hint.style.opacity = "0";
+    }
+    wrap.addEventListener("mousemove", function (e) { setFromPoint(e.clientX, e.clientY); });
+    wrap.addEventListener("touchmove", function (e) { if (e.touches[0]) setFromPoint(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+    function frame() {
+      cur.x += (target.x - cur.x) * 0.05; cur.y += (target.y - cur.y) * 0.05;
+      gl.uniform2f(uRes, canvas.width, canvas.height);
+      gl.uniform2f(uC, cur.x, cur.y);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
   })();
 
-  /* ---- skills chips: invert while passing the viewport centre ---- */
+  /* ---- skyline bits (above the "Let's build" CTA) ---- */
+  (function () {
+    var widgets = document.querySelectorAll(".skybits");
+    if (!widgets.length) return;
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function readInk() { return (getComputedStyle(document.documentElement).getPropertyValue("--ink") || "#15140F").trim() || "#15140F"; }
+    var ink = readInk();
+    new MutationObserver(function () { ink = readInk(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+    [].forEach.call(widgets, function (wrap) {
+      var canvas = wrap.querySelector("canvas");
+      if (!canvas) { canvas = document.createElement("canvas"); wrap.appendChild(canvas); }
+      var ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      var W = 0, H = 0, dpr = 1, BIT = 4, bits = [];
+      var mx = -1e4, my = -1e4, active = false, t = 0;
+
+      function build() {
+        bits = [];
+        var bx = 0, step = BIT + 3;
+        while (bx < W) {
+          var bw = 16 + Math.floor(Math.random() * 42);
+          var bh = Math.round(H * (0.32 + Math.random() * 0.6));
+          var x0 = bx, x1 = Math.min(W, bx + bw), top = H - bh;
+          for (var x = x0; x < x1; x += step) {
+            for (var y = H; y >= top; y -= step) {
+              var edge = Math.round((y - top) / step);   // 0 at the building top
+              var keep = edge < 4 ? (0.2 + edge * 0.2) : 0.92;
+              if (Math.random() > keep) continue;
+              bits.push({ hx: x, hy: y, x: x, y: y, vx: 0, vy: 0, a: 1, fly: 0, edge: edge });
+            }
+          }
+          bx += bw + 3 + Math.floor(Math.random() * 5);
+        }
+      }
+      function detach(b, dirx, diry, boost) {
+        var len = Math.sqrt(dirx * dirx + diry * diry) || 1, sp = (0.3 + Math.random() * 0.7) * (boost || 1);
+        b.vx = (dirx / len) * sp + (Math.random() - 0.5) * 0.3;
+        b.vy = -(0.4 + Math.random() * 0.8) * (boost || 1);   // bits rise off the rooftops
+        b.fly = 1; b.a = 0.95;
+      }
+      function draw(stat) {
+        t += 0.01;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = ink;
+        for (var i = 0; i < bits.length; i++) {
+          var b = bits[i], alpha;
+          if (b.fly === 0) {
+            b.x = b.hx + Math.sin(t * 1.2 + b.hx * 0.06) * 0.35;
+            b.y = b.hy + Math.cos(t * 1.0 + b.hy * 0.06) * 0.35;
+            if (stat !== true) {
+              if (b.edge < 3 && Math.random() < 0.004) detach(b, Math.random() - 0.5, -1, 1);
+              if (active) { var ex = b.x - mx, ey = b.y - my; if (ex * ex + ey * ey < 5000) detach(b, ex, ey, 1.6); }
+            }
+            alpha = b.edge < 4 ? (0.28 + b.edge * 0.16) : 0.9;
+          } else {
+            b.x += b.vx; b.y += b.vy; b.vy += 0.012; b.vx *= 0.99;
+            b.a -= 0.014;
+            if (b.a <= 0) { b.fly = 0; b.a = 1; b.x = b.hx; b.y = b.hy; }
+            alpha = b.a * 0.85;
+          }
+          ctx.globalAlpha = alpha < 0 ? 0 : alpha;
+          ctx.fillRect(b.x - BIT / 2, b.y - BIT / 2, BIT, BIT);
+        }
+        ctx.globalAlpha = 1;
+        if (stat !== true) requestAnimationFrame(draw);
+      }
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        W = wrap.clientWidth; H = wrap.clientHeight;
+        canvas.width = Math.max(1, Math.floor(W * dpr));
+        canvas.height = Math.max(1, Math.floor(H * dpr));
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        build(); draw(true);
+      }
+      wrap.addEventListener("mousemove", function (e) { var r = wrap.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; active = true; });
+      wrap.addEventListener("mouseleave", function () { active = false; });
+      window.addEventListener("resize", resize);
+      if (window.ResizeObserver) new ResizeObserver(resize).observe(wrap);
+      resize();
+      if (!reduce) requestAnimationFrame(draw);
+    });
+  })();
+
+    /* ---- skills chips: invert while passing the viewport centre ---- */
   var chips = document.querySelectorAll(".chip");
   if (chips.length) {
     var chipTick = false;
@@ -201,7 +262,7 @@
     updateChips();
   }
 
-  /* ---- ink cursor (calligraphy trail) ---- */
+  /* ---- binary cursor trail (1/0 bits; non-home pages) ---- */
   (function () {
     if (!window.matchMedia) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -214,27 +275,33 @@
     function size() { dpr = Math.min(window.devicePixelRatio || 1, 2); canvas.width = window.innerWidth * dpr; canvas.height = window.innerHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
     size(); window.addEventListener("resize", size);
     function readInk() { return (getComputedStyle(document.documentElement).getPropertyValue("--ink") || "#15140F").trim() || "#15140F"; }
-    var col = readInk(), pts = [], last = null, life = 520, running = false;
+    var col = readInk(), digits = [], last = null, running = false, life = 780;
+    new MutationObserver(function () { col = readInk(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     window.addEventListener("mousemove", function (e) {
-      var now = performance.now(), x = e.clientX, y = e.clientY, w = 6;
-      if (last) { var dx = x - last.x, dy = y - last.y, d = Math.sqrt(dx * dx + dy * dy), speed = d / Math.max(1, now - last.t); w = Math.max(0.6, Math.min(7, 7 - speed * 6)); }
-      pts.push({ x: x, y: y, t: now, w: w }); last = { x: x, y: y, t: now };
+      var now = performance.now();
+      if (!last || Math.abs(e.clientX - last.x) + Math.abs(e.clientY - last.y) > 7) {
+        digits.push({ x: e.clientX + (Math.random() - 0.5) * 8, y: e.clientY + (Math.random() - 0.5) * 8,
+          vx: (Math.random() - 0.5) * 0.5, vy: 0.45 + Math.random() * 0.85, t: now,
+          ch: Math.random() < 0.5 ? "0" : "1", size: 9 + Math.floor(Math.random() * 4) });
+        if (digits.length > 150) digits.shift();
+        last = { x: e.clientX, y: e.clientY };
+      }
       if (!running) { running = true; requestAnimationFrame(frame); }
     }, { passive: true });
     function frame(now) {
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-      while (pts.length && now - pts[0].t > life) pts.shift();
-      ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = col;
-      for (var i = 1; i < pts.length; i++) {
-        var a = pts[i - 1], b = pts[i], alpha = Math.max(0, 1 - (now - b.t) / life);
-        ctx.globalAlpha = alpha * 0.85; ctx.lineWidth = b.w;
-        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = col;
+      for (var i = digits.length - 1; i >= 0; i--) {
+        var d = digits[i], age = now - d.t;
+        if (age > life) { digits.splice(i, 1); continue; }
+        d.x += d.vx; d.y += d.vy; d.vy += 0.012;
+        ctx.globalAlpha = Math.max(0, 1 - age / life) * 0.9;
+        ctx.font = d.size + "px ui-monospace, SFMono-Regular, Menlo, monospace";
+        ctx.fillText(d.ch, d.x, d.y);
       }
       ctx.globalAlpha = 1;
-      if (pts.length) requestAnimationFrame(frame); else running = false;
+      if (digits.length) requestAnimationFrame(frame); else running = false;
     }
-    var mo = new MutationObserver(function () { col = readInk(); });
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   })();
 
   /* ---- custom cursor dot (black circle; larger on home) ---- */

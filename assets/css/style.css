@@ -401,3 +401,8 @@ html:not([data-page="home"]) main .section.expeditions:has(.sec-head){grid-templ
   html:not([data-page="home"]) main .section.project3:has(.sec-head) > .workfig{grid-column:3}
   html:not([data-page="home"]) main .section.project3:has(.sec-head) > .sec-head{position:static}
 }
+
+/* ---- skyline bits above the "Let's build" CTA (generative) ---- */
+.skybits{position:relative;width:100%;height:clamp(110px,15vh,168px);margin-bottom:1.5rem;overflow:hidden}
+.skybits canvas{display:block;width:100%;height:100%}
+@media (max-width:560px){.skybits{height:96px;margin-bottom:1.1rem}}
