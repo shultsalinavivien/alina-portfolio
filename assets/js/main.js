@@ -352,7 +352,6 @@
       var mq = window.matchMedia("(prefers-color-scheme: dark)"), onmq = function () { readColors(); draw(cur); };
       if (mq.addEventListener) mq.addEventListener("change", onmq); else if (mq.addListener) mq.addListener(onmq);
     }
-    window.__phylloDraw = draw;  /* TEMP debug hook — removed after verification */
   })();
 
   /* ---- expeditions: light up each region as its row scrolls in ---- */
