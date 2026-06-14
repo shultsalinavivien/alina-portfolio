@@ -181,6 +181,7 @@
     if (!window.matchMedia) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (!window.matchMedia("(pointer: fine)").matches) return;
+    if (root.getAttribute("data-page") === "home") return;
     var canvas = document.createElement("canvas");
     canvas.id = "ink-cursor";
     (document.body || document.documentElement).appendChild(canvas);
@@ -209,6 +210,22 @@
     }
     var mo = new MutationObserver(function () { col = readInk(); });
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  })();
+
+  /* ---- custom cursor dot (black circle; larger on home) ---- */
+  (function () {
+    if (!window.matchMedia || !window.matchMedia("(pointer: fine)").matches) return;
+    var dot = document.createElement("div");
+    dot.id = "cursor-dot";
+    if (root.getAttribute("data-page") === "home") dot.className = "cursor-dot--lg";
+    (document.body || root).appendChild(dot);
+    root.classList.add("has-cursor-dot");
+    window.addEventListener("mousemove", function (e) {
+      dot.style.transform = "translate(" + e.clientX + "px," + e.clientY + "px)";
+      dot.style.opacity = "1";
+    }, { passive: true });
+    document.addEventListener("mouseleave", function () { dot.style.opacity = "0"; });
+    document.addEventListener("mouseenter", function () { dot.style.opacity = "1"; });
   })();
 
   /* ---- footer year ---- */

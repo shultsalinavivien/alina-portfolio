@@ -340,3 +340,6 @@ figure:has(.plate__tag){display:none}
   transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
 .chip.is-inverted{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 #ink-cursor{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9998}
+.has-cursor-dot,.has-cursor-dot *{cursor:none}
+#cursor-dot{position:fixed;top:0;left:0;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;background:var(--ink);border-radius:50%;pointer-events:none;z-index:9999;opacity:0;transition:opacity .25s var(--ease)}
+#cursor-dot.cursor-dot--lg{width:16px;height:16px;margin:-8px 0 0 -8px}
