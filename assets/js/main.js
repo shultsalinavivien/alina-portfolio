@@ -90,6 +90,76 @@
     });
   }
 
+  /* ---- Julia set (generative) ---- */
+  (function () {
+    var canvas = document.getElementById("julia-canvas");
+    if (!canvas) return;
+    var wrap = document.getElementById("julia");
+    var hint = document.getElementById("julia-hint");
+    var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    if (!gl) { if (hint) hint.textContent = "WebGL not supported"; return; }
+    var vertSrc = "attribute vec2 p; void main(){ gl_Position = vec4(p,0.0,1.0); }";
+    var fragSrc = [
+      "precision highp float;",
+      "uniform vec2 u_res; uniform vec2 u_c;",
+      "void main(){",
+      "  vec2 uv = (gl_FragCoord.xy - 0.5*u_res)/min(u_res.x,u_res.y);",
+      "  uv *= 2.6;",
+      "  vec2 z = uv; vec2 c = u_c; const float MAX = 180.0; float n = 0.0;",
+      "  for(int i=0;i<180;i++){",
+      "    z = vec2(z.x*z.x - z.y*z.y, 2.0*z.x*z.y) + c;",
+      "    if(dot(z,z) > 64.0) break;",
+      "    n += 1.0;",
+      "  }",
+      "  if(n >= MAX){ gl_FragColor = vec4(vec3(0.04),1.0); return; }",
+      "  float sn = n + 1.0 - log(log(sqrt(dot(z,z))))/log(2.0);",
+      "  float t = clamp(sn/40.0, 0.0, 1.0);",
+      "  float g = pow(1.0 - t, 0.85);",
+      "  vec3 col = vec3(g);",
+      "  float vig = smoothstep(2.0,0.15,length(uv));",
+      "  col *= 0.88 + 0.12*vig;",
+      "  gl_FragColor = vec4(col,1.0);",
+      "}"
+    ].join("\n");
+    function compile(t, s) { var sh = gl.createShader(t); gl.shaderSource(sh, s); gl.compileShader(sh); return sh; }
+    var prog = gl.createProgram();
+    gl.attachShader(prog, compile(gl.VERTEX_SHADER, vertSrc));
+    gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fragSrc));
+    gl.linkProgram(prog); gl.useProgram(prog);
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(prog, "p");
+    gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    var uRes = gl.getUniformLocation(prog, "u_res"), uC = gl.getUniformLocation(prog, "u_c");
+    function resize() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.max(1, Math.floor(wrap.clientWidth * dpr));
+      canvas.height = Math.max(1, Math.floor(wrap.clientHeight * dpr));
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    }
+    window.addEventListener("resize", resize);
+    if (window.ResizeObserver) new ResizeObserver(resize).observe(wrap);
+    resize();
+    var target = { x: -0.74, y: 0.18 }, cur = { x: -0.74, y: 0.18 };
+    function setFromPoint(x, y) {
+      var r = wrap.getBoundingClientRect();
+      var mx = (x - r.left) / r.width, my = (y - r.top) / r.height;
+      target.x = -0.85 + mx * 1.25; target.y = 0.45 - my * 0.90;
+      if (hint) hint.style.opacity = "0";
+    }
+    wrap.addEventListener("mousemove", function (e) { setFromPoint(e.clientX, e.clientY); });
+    wrap.addEventListener("touchmove", function (e) { if (e.touches[0]) setFromPoint(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+    function frame() {
+      cur.x += (target.x - cur.x) * 0.05; cur.y += (target.y - cur.y) * 0.05;
+      gl.uniform2f(uRes, canvas.width, canvas.height);
+      gl.uniform2f(uC, cur.x, cur.y);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+
   /* ---- footer year ---- */
   var yr = new Date().getFullYear();
   document.querySelectorAll("[data-year]").forEach(function (e) { e.textContent = yr; });
