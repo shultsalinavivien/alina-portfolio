@@ -59,9 +59,11 @@
     var dataEl = document.getElementById("placedata");
     var places = [];
     try { places = JSON.parse(dataEl.textContent); } catch (e) { places = []; }
-    var W = 1000, H = 444, lonMin = -90, lonMax = 180, latMin = -40, latMax = 80;
+    var W = 1000, H = 679, lonMin = -90, lonMax = 180, latMin = -40, latMax = 80;
     function px(lon) { return (lon - lonMin) / (lonMax - lonMin) * W; }
-    function py(lat) { return (latMax - lat) / (latMax - latMin) * H; }
+    var mY = function (l) { l = Math.max(-84, Math.min(84, l)); return Math.log(Math.tan(Math.PI / 4 + l * Math.PI / 360)); };
+    var yTop = mY(latMax), yBot = mY(latMin);
+    function py(lat) { return (yTop - mY(lat)) / (yTop - yBot) * H; }
     function mk(tag, attrs) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
     var readout = document.getElementById("mapreadout");
     var defaultMsg = readout ? readout.textContent : "";
