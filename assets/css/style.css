@@ -91,8 +91,8 @@ a{color:inherit;text-decoration:underline;text-decoration-color:var(--ink-2);tex
 a:hover{text-decoration-color:var(--ink)}
 .skip-link,.wordmark,.nav a,.btn,.work-row,.volunteer a{text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
-::selection{background:#000;color:#fff}
-::-moz-selection{background:#000;color:#fff}
+::selection{background:var(--ink);color:var(--paper)}
+::-moz-selection{background:var(--ink);color:var(--paper)}
 
 /* ---- Helpers ----------------------------------------------------------- */
 .wrap{max-width:var(--maxw);margin-inline:auto;padding-inline:var(--pad)}
