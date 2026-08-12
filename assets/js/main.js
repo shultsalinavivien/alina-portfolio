@@ -545,12 +545,13 @@
       var next = book.querySelector(".flip__next");
       var counter = book.querySelector(".flip__count");
       var stage = book.querySelector(".flip__stage");
+      var altBase = book.getAttribute("data-flip-alt") || "Khabarovsk brandbook";
       var i = 1;
       function src(n) { return base + n + ext; }
       function preload(n) { if (n >= 1 && n <= count) { (new Image()).src = src(n); } }
       function render() {
         page.src = src(i);
-        page.alt = "Khabarovsk brandbook — page " + i;
+        page.alt = altBase + " — page " + i;
         if (counter) counter.textContent = i + " / " + count;
         prev.disabled = i <= 1; next.disabled = i >= count;
         preload(i + 1); preload(i - 1);
