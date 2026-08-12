@@ -546,7 +546,7 @@
       var counter = book.querySelector(".flip__count");
       var stage = book.querySelector(".flip__stage");
       var altBase = book.getAttribute("data-flip-alt") || "Khabarovsk brandbook";
-      var i = 1;
+      var i = Math.min(count, Math.max(1, parseInt(book.getAttribute("data-flip-start"), 10) || 1));
       function src(n) { return base + n + ext; }
       function preload(n) { if (n >= 1 && n <= count) { (new Image()).src = src(n); } }
       function render() {
