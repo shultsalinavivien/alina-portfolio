@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="A speculative AI Specialist case study: an AI and automation operating layer across strategy, marketing and design, walked through with a modular furniture brand.">
+<link rel="icon" href="../../favicon.ico">
+<title>Creative Operating Layer — Alina Shults</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#0E1013; --dot:#262A31; --node:#16191D; --ink:#E9EBEE; --muted:#9097A0;
+  --line:#3B414A; --soft:#1C2025;
+  --ai:#8C9BFF; --ai-soft:#1D2345;
+  --break:#FF6E6E; --break-soft:#3A1C1E;
+  --sans:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background-color:var(--bg);
+  color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.5;
+  padding-inline:20px; padding-block:40px 80px;
+}
+.bgfx{position:fixed;inset:0;z-index:-1;background:#000 url(bg.gif) center/cover no-repeat;image-rendering:pixelated}
+.bgfx::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.45))}
+@media (prefers-reduced-motion:reduce){.bgfx{background-image:url(bg-still.png)}}
+html,body,a,button,iframe{cursor:none}
+.cur{position:fixed;left:0;top:0;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#fff;pointer-events:none;z-index:9999;mix-blend-mode:difference;transition:width .15s,height .15s,margin .15s,opacity .2s;opacity:0}
+.cur.on{opacity:1}
+.cur.big{width:36px;height:36px;margin:-18px 0 0 -18px}
+@media (hover:none),(pointer:coarse){html,body,a,button,iframe{cursor:auto}.cur{display:none}}
+.wrap{max-width:1140px;margin:0 auto;display:flex;flex-direction:column;gap:56px}
+.mono{font-family:var(--mono)}
+h1,h2,h3,h4{margin:0;text-wrap:balance;font-weight:600}
+p{margin:0}
+.lbl{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- title block ---------- */
+.title{display:grid;gap:18px;max-width:900px}
+.title h1{text-shadow:0 2px 24px rgba(0,0,0,.6);font-size:clamp(28px,4.4vw,50px);line-height:1.06;letter-spacing:-.02em;font-weight:600}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:var(--mono);font-size:11px;letter-spacing:.04em;border:1px solid var(--line);background:var(--node);padding:4px 8px;border-radius:4px;color:var(--muted)}
+.lede{max-width:62ch;font-size:17px}
+.lede b{font-weight:600}
+
+/* ---------- group frame (node-editor group) ---------- */
+.group{position:relative;border:1px dashed var(--line);border-radius:10px;padding:36px 22px 24px;background:rgba(10,12,15,.78);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.group>.tab{position:absolute;top:-12px;left:16px;background:var(--ink);color:var(--bg);font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:4px}
+.ghead{display:grid;gap:8px;margin-bottom:22px;max-width:70ch}
+.ghead h2{font-size:clamp(21px,2.4vw,27px);letter-spacing:-.01em}
+.ghead p{color:var(--muted)}
+
+/* ---------- node ---------- */
+.node{position:relative;background:var(--node);border:1px solid var(--line);border-radius:6px;min-width:0}
+.node .nh{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase}
+.node .nb{padding:10px;font-size:13.5px;line-height:1.45}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:none}
+.node.ai{border-color:var(--ai)} .node.ai .nh{color:var(--ai);border-color:var(--ai);background:var(--ai-soft)} .node.ai .dot{background:var(--ai)}
+.node.auto{border-style:dashed} .node.auto .nh{border-bottom-style:dashed}
+.node.human{background:var(--ink);color:var(--bg);border-color:var(--ink)} .node.human .nh{border-color:color-mix(in srgb,var(--bg) 25%,transparent)} .node.human .dot{background:var(--bg);border-radius:1px;transform:rotate(45deg)}
+.port{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--node);border:1.5px solid var(--ink);top:14px}
+.port.l{left:-5px} .port.r{right:-5px}
+
+/* legend */
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:18px;height:12px;border-radius:3px;border:1px solid var(--line);background:var(--node)}
+.sw.ai{background:var(--ai-soft);border-color:var(--ai)} .sw.auto{border-style:dashed} .sw.human{background:var(--ink);border-color:var(--ink)}
+
+/* ---------- 02 before / after ---------- */
+.toggle{display:inline-flex;border:1px solid var(--ink);border-radius:6px;overflow:hidden;margin-bottom:22px}
+.toggle button{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:8px 14px;border:0;background:var(--node);color:var(--ink);cursor:pointer}
+.toggle button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.toggle button:focus-visible{outline:2px solid var(--ai);outline-offset:-3px}
+.chain{display:flex;align-items:stretch;gap:0}
+.chain .node{flex:1 1 0}
+.chain .node .nb{font-size:12.5px;color:var(--muted)}
+.edge{flex:0 0 22px;align-self:center;height:1px;background:var(--ink);position:relative}
+.edge::after{content:"";position:absolute;right:-1px;top:-3px;border-left:6px solid var(--ink);border-top:3.5px solid transparent;border-bottom:3.5px solid transparent}
+.badge{position:absolute;top:-10px;right:-8px;width:20px;height:20px;border-radius:50%;font:600 11px/20px var(--mono);text-align:center;background:var(--break);color:#fff}
+.ba:not(.after) .after-only{display:none}
+.ba.after .before-only{display:none}
+.ba.after .chain .node{border-color:var(--ai)}
+.ba.after .badge{display:none}
+.kbar{margin-top:14px;border:1px solid var(--ai);background:var(--ai-soft);color:var(--ai);border-radius:6px;padding:9px 12px;font:500 12px var(--mono);letter-spacing:.04em;text-transform:uppercase;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.loop{margin-top:10px;border:1px dashed var(--ink);border-radius:6px;padding:8px 12px;font:12px var(--mono);display:flex;gap:8px;align-items:center}
+.notes{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.note{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;background:var(--node);border:1px solid var(--line);border-radius:6px;padding:10px}
+.note .n{flex:none;width:20px;height:20px;border-radius:50%;font:600 11px/20px var(--mono);text-align:center;background:var(--break);color:#fff}
+.note .n.ok{background:var(--ai)}
+
+/* ---------- 03 system ---------- */
+.sys-scroll{overflow-x:auto;padding-bottom:6px}
+.system{display:grid;grid-template-columns:86px repeat(7,minmax(128px,1fr));grid-template-rows:auto auto auto auto;gap:8px;min-width:1020px}
+.lane{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;color:var(--muted)}
+.lane.h{visibility:hidden}
+.stage{min-width:0;display:grid;grid-row:1 / span 4;grid-template-rows:subgrid;gap:8px}
+.stage .st{font:600 13px var(--sans);padding:6px 2px;border-bottom:1px solid var(--ink);display:flex;justify-content:space-between;align-items:end}
+.stage .st .mono{font-size:10px;color:var(--muted);font-weight:400}
+.cell{border-radius:5px;padding:8px 9px;font-size:12.5px;line-height:1.4;border:1px solid var(--line);background:var(--node)}
+.cell.ai{border-color:var(--ai);background:var(--ai-soft)}
+.cell.auto{border-style:dashed}
+.cell.human{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.cell.human b{font-weight:600}
+
+.tools{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.tool{min-width:0;overflow-wrap:anywhere;font:500 10px var(--mono);letter-spacing:.04em;padding:2px 6px;border-radius:3px;border:1px solid currentColor;opacity:.85}
+.cell.ai .tool{color:var(--ai)}
+.gate::before{content:"◆ ";font-size:10px}
+.sys-foot{display:grid;grid-template-columns:86px 1fr;gap:8px;min-width:1020px;margin-top:8px}
+.sys-foot .kbar,.sys-foot .loop{margin-top:0}
+
+/* ---------- 04 layers ---------- */
+.layers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+.layer+.layer{border-left:1px solid var(--ink)}
+.layer{padding-inline:16px}
+.layer:first-child{padding-left:0}.layer:last-child{padding-right:0}
+.layer h3{padding-bottom:8px;border-bottom:1px solid var(--ink)}
+.layer{display:flex;flex-direction:column;gap:12px}
+.layer h3{font-size:19px}
+.layer .q{color:var(--muted);font-size:14px}
+.flow{display:grid;gap:0;border:1px solid var(--line);border-radius:6px;background:var(--node);overflow:hidden}
+.flow .ft{padding:8px 10px;font:600 13px var(--sans);border-bottom:1px solid var(--line)}
+.flow .row{display:grid;grid-template-columns:62px 1fr;gap:8px;padding:6px 10px;font-size:12.5px;border-bottom:1px solid var(--soft)}
+.flow .row:last-child{border-bottom:0}
+.flow .row .k{font:500 10px/1.9 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.flow .row.ai .k{color:var(--ai)}
+.flow .row.hu{background:var(--ink);color:var(--bg)} .flow .row.hu .k{color:var(--bg)}
+.flow .row.out{font-weight:600}
+
+/* ---------- 05 in practice ---------- */
+.steps{display:grid;gap:0}
+.step{display:grid;grid-template-columns:44px 1fr;gap:14px;position:relative;padding-bottom:26px}
+.step:last-child{padding-bottom:0}
+.step .rail{position:relative;display:flex;justify-content:center}
+.step .rail::before{content:"";position:absolute;top:30px;bottom:-26px;width:1px;background:var(--ink)}
+.step:last-child .rail::before{display:none}
+.step .num{position:relative;z-index:1;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--ink);background:var(--node);font:600 12px/27px var(--mono);text-align:center}
+.step .out{display:grid;gap:10px}
+.step .out h3{font-size:18px}
+.step .out .in{font-size:13px;color:var(--muted)}
+.step .dec{align-self:start}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
+.kv dt{font:500 10.5px/1.9 var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.kv dd{margin:0}
+.flag{display:inline-block;font:500 10.5px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--break);border:1px solid var(--break);border-radius:3px;padding:1px 5px;margin-right:4px}
+.illus{font:10.5px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.map{width:100%;max-width:520px;height:auto;display:block}
+.map .ax{stroke:var(--ink);stroke-width:1}
+.map .grid{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4}
+.map .t{fill:var(--muted);font:10px var(--mono);letter-spacing:.04em}
+.map .b{fill:var(--node);stroke:var(--ink);stroke-width:1.2}
+.map .bt{fill:var(--ink);font:11px var(--sans)}
+.map .ws{fill:var(--ai-soft);stroke:var(--ai);stroke-width:1.2;stroke-dasharray:4 3}
+.map .wst{fill:var(--ai);font:500 11px var(--mono)}
+.strike{text-decoration:line-through;color:var(--muted)}
+.tens{margin:0;padding-left:22px;display:grid;gap:6px;font-size:13.5px;color:var(--muted)}
+.tens li.pick{color:var(--ink);font-weight:600}
+.tens li.pick::marker{color:var(--ai)}
+.final{font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.01em}
+.matrix{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--node);border:1px solid var(--line)}
+.matrix th,.matrix td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.matrix th{font:500 10.5px var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--soft)}
+.matrix td.cut{color:var(--muted);text-decoration:line-through}
+.terr{display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:10px;align-items:start}
+.shot{display:block;width:100%;height:auto;border-radius:3px;border:1px solid var(--line)}
+.shot.tall{aspect-ratio:4/5;object-fit:cover;background:#000}
+.frame.pack{padding:0;display:grid;grid-template-columns:3fr 2fr;grid-template-rows:1fr 1fr;gap:3px;overflow:hidden;background:var(--line)}
+.frame.pack img{width:100%;height:100%;object-fit:cover;display:block;min-height:0}
+.frame.pack img:first-child{grid-row:1 / span 2}
+.terr .node .nb{display:grid;gap:8px}
+.pal{display:flex;height:26px;border-radius:3px;overflow:hidden;border:1px solid var(--line)}
+.pal i{flex:1}
+.status{font:500 10.5px var(--mono);letter-spacing:.05em;text-transform:uppercase}
+.status.core{color:var(--ai)} .status.rej{color:var(--break)}
+.cfg{margin:0;display:grid;gap:8px;border:1px solid var(--line);border-radius:6px;background:var(--node);padding:8px}
+.cfg-frame{position:relative;height:clamp(560px,78vh,780px);border-radius:3px;overflow:hidden;background:#fff url(configurator.jpg) center/cover no-repeat}
+.cfg-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+.cfg figcaption{display:grid;gap:4px;font-size:13px;padding:2px 4px 4px;max-width:80ch}
+.apps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.app.red{grid-column:1 / -1}
+.apps .frame{aspect-ratio:16/10}
+.slides{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.slide{position:relative;aspect-ratio:3/4;border-radius:4px;overflow:hidden;border:1px solid var(--line);background:#000}
+.slide img{width:100%;height:100%;object-fit:cover;display:block}
+.slide .ov{position:absolute;left:0;right:0;top:0;padding:10px 12px 28px;display:grid;gap:2px;font-size:12px;color:#fff;background:linear-gradient(180deg,rgba(0,0,0,.55),transparent)}
+.slide .ov b{font-size:16px;font-weight:600}
+.slide .pg{position:absolute;right:8px;bottom:8px;font:500 10px var(--mono);color:#fff;background:rgba(0,0,0,.45);padding:2px 6px;border-radius:10px}
+.frame.card{padding:0;position:relative;overflow:hidden;aspect-ratio:5/4}
+.frame.card img{object-position:50% 60%}
+.frame.card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cardtxt{position:absolute;left:10px;bottom:10px;width:min(62%,260px);background:rgba(250,248,244,.94);color:#16181c;border-radius:3px;padding:10px 12px;display:grid;gap:5px;font-size:11.5px;line-height:1.35}
+.cardtxt b{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.cardtxt small{font:10px var(--mono);color:#555;text-transform:uppercase;letter-spacing:.04em}
+.qr{width:38px;height:38px;background:conic-gradient(#16181c 25%,transparent 0 50%,#16181c 0 75%,transparent 0) 0 0/10px 10px;border:3px solid #16181c}
+
+.app{display:grid;gap:6px;font-size:12px}
+.frame{border:1px solid var(--ink);border-radius:4px;background:var(--node);padding:8px;display:flex;flex-direction:column;gap:5px;aspect-ratio:5/4;max-width:100%}
+.frame.wide{aspect-ratio:4/3}
+.frame .ln{height:5px;border-radius:2px;background:var(--line)}
+.frame .blk{flex:1;border:1px dashed var(--line);border-radius:3px;display:flex;align-items:center;justify-content:center;font:10px var(--mono);color:var(--muted);text-transform:uppercase;text-align:center;padding:4px}
+.frame .jn{display:flex;gap:4px}
+.frame .jn span{flex:1;height:14px;border:1px solid var(--ink);border-radius:2px}
+.hypo{border:1px dashed var(--ai);border-radius:6px;padding:12px;display:grid;gap:6px;background:var(--node)}
+
+/* ---------- 06 human / ai ---------- */
+.principle{font-size:clamp(22px,3vw,34px);font-weight:600;letter-spacing:-.015em;margin-bottom:20px;max-width:24ch}
+.principle em{font-style:normal;color:var(--ai)}
+.resp{width:100%;border-collapse:collapse;font-size:13px;background:var(--node);border:1px solid var(--line)}
+.resp th,.resp td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left}
+.resp thead th{font:500 10.5px var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--soft)}
+.resp td.c{text-align:center;width:15%}
+.m{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:middle}
+.m.full{background:var(--ink)} .m.ai{background:var(--ai)} .m.half{border:1.5px solid var(--muted)}
+.m.none{width:10px;height:1.5px;border-radius:0;background:var(--line)}
+.tbl-scroll{overflow-x:auto}
+
+/* ---------- 08 under the hood ---------- */
+details.hood{background:var(--node);border:1px solid var(--line);border-radius:6px}
+details.hood summary{cursor:pointer;padding:12px 14px;font:500 12px var(--mono);letter-spacing:.05em;text-transform:uppercase;list-style:none;display:flex;justify-content:space-between}
+details.hood summary::after{content:"+"}
+details.hood[open] summary::after{content:"–"}
+details.hood summary:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
+details.hood .inner{padding:4px 14px 16px;display:grid;gap:14px}
+.agents{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.agents .nb{display:grid;gap:6px;font-size:12.5px}
+.agents .nb .k{font:500 10px var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.nope{font-size:13px;color:var(--muted)}
+.stack{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stackwrap{margin-top:22px;display:grid;gap:10px}
+.stack>div{background:var(--node);border:1px solid var(--line);border-radius:6px;padding:10px;display:grid;gap:8px;align-content:start}
+.stack ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;font-size:12.5px}
+.stack li b{font-weight:600}
+
+/* ---------- 09 rollout ---------- */
+.roll{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.roll ul{margin:0;padding-left:16px;display:grid;gap:6px;font-size:13px}
+.risks{margin-top:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.risks .note{flex-direction:column;gap:4px}
+.risks .note b{font-weight:600}
+footer{font:11px var(--mono);color:var(--muted);letter-spacing:.03em;border-top:1px solid var(--line);padding-top:16px}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .terr,.agents,.stack{grid-template-columns:1fr}
+  .risks,.apps{grid-template-columns:1fr 1fr}
+  .step{grid-template-columns:36px 1fr}
+  .step .dec{grid-column:2}
+}
+@media (max-width:760px){
+  body{padding-inline:16px}
+  .group{padding:32px 14px 18px}
+  .chain{flex-direction:column}
+  .edge{flex:0 0 18px;width:1px;height:auto;align-self:center}
+  .edge::after{right:-3px;top:auto;bottom:-1px;border-left:3.5px solid transparent;border-right:3.5px solid transparent;border-top:6px solid var(--ink);border-bottom:0}
+  .risks,.apps{grid-template-columns:1fr}
+  .slides{grid-template-columns:repeat(4,72%);overflow-x:auto;scroll-snap-type:x mandatory}
+  .slide{scroll-snap-align:start}
+  .layers{grid-template-columns:1fr;gap:28px}
+  .layer{padding-inline:0}
+  .layer+.layer{border-left:0}
+}
+@media (prefers-reduced-motion:no-preference){
+  .chain .node,.kbar,.loop{transition:border-color .25s}
+}
+.back{position:relative;z-index:2;display:inline-block;max-width:1140px;margin:0 auto 28px;font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--ink)}
+.backwrap{max-width:1140px;margin:0 auto}
+</style>
+</head>
+<body>
+
+
+<div class="bgfx" aria-hidden="true"></div>
+<div class="cur" aria-hidden="true"></div>
+<div class="backwrap"><a class="back" href="../../work.html">← Alina Shults · Work</a>
+</div>
+<div class="wrap">
+
+<!-- ================= 01 QUESTION ================= -->
+<header class="title">
+  <h1>How can AI, automation and intelligent workflows change the way a branding agency works?</h1>
+</header>
+
+
+<!-- ================= 03 SYSTEM ================= -->
+<section class="group">
+  <span class="tab">The system</span>
+  <div class="ghead">
+    <h2>An operating layer across strategy, marketing and design</h2>
+  </div>
+  <div class="legend" style="margin-bottom:14px">
+    <span><i class="sw ai"></i>AI · proposes</span>
+    <span><i class="sw auto"></i>Automation · moves</span>
+    <span><i class="sw human"></i>Human · decides</span>
+    <span>◆ decision gate</span>
+  </div>
+  <div class="sys-scroll">
+    <div class="system">
+      <div class="lane h">Stage</div>
+      <div class="lane" style="grid-row:2">AI</div>
+      <div class="lane" style="grid-row:3">Automation</div>
+      <div class="lane" style="grid-row:4">Human</div>
+
+      <div class="stage" style="grid-column:2">
+        <div class="st">Intake <span class="mono">01</span></div>
+        <div class="cell ai">Turns calls, decks and emails into a structured brief and flags what is missing<span class="tools"><span class="tool">Claude</span></span></div>
+        <div class="cell auto">Sets up the project space and pulls in related past work<span class="tools"><span class="tool">n8n → Notion</span></span></div>
+        <div class="cell human gate"><b>Account lead</b> confirms scope and ambition</div>
+      </div>
+      <div class="stage" style="grid-column:3">
+        <div class="st">Intelligence <span class="mono">02</span></div>
+        <div class="cell ai">Scans competitors, RED and WeChat talk, reviews. Clusters patterns into hypotheses<span class="tools"><span class="tool">Perplexity</span><span class="tool">Claude</span></span></div>
+        <div class="cell auto">Keeps monitoring running and links every claim to its source<span class="tools"><span class="tool">n8n → Airtable</span></span></div>
+        <div class="cell human"><b>Strategist</b> checks sources and drops weak signals</div>
+      </div>
+      <div class="stage" style="grid-column:4">
+        <div class="st">Strategy <span class="mono">03</span></div>
+        <div class="cell ai">Drafts tensions and stress-tests positioning options against the map<span class="tools"><span class="tool">Claude</span></span></div>
+        <div class="cell auto">Writes the approved strategy into brand codes: tone, audiences, do/don't<span class="tools"><span class="tool">Claude Skill</span></span></div>
+        <div class="cell human gate"><b>Strategist</b> chooses the insight and positioning</div>
+      </div>
+      <div class="stage" style="grid-column:5">
+        <div class="st">Campaign <span class="mono">04</span></div>
+        <div class="cell ai">Expands one idea into a matrix of audience × platform × language<span class="tools"><span class="tool">Claude</span><span class="tool">Qwen · 简中</span></span></div>
+        <div class="cell auto">Builds the calendar and an asset brief for every cell<span class="tools"><span class="tool">n8n → Airtable</span></span></div>
+        <div class="cell human gate"><b>Creative director</b> approves the idea. Native writers rewrite the copy</div>
+      </div>
+      <div class="stage" style="grid-column:6">
+        <div class="st">Design <span class="mono">05</span></div>
+        <div class="cell ai">Explores territories, materials, type and composition within the brand codes<span class="tools"><span class="tool">Figma Weave</span><span class="tool">Midjourney</span><span class="tool">Seedream</span><span class="tool">Flux</span></span></div>
+        <div class="cell auto">Adapts approved masters to every format and checks them against the codes<span class="tools"><span class="tool">Weave App Mode</span></span></div>
+        <div class="cell human gate"><b>Designer</b> curates, rejects and sets the art direction<span class="tools"><span class="tool">Figma</span></span></div>
+      </div>
+      <div class="stage" style="grid-column:7">
+        <div class="st">Launch <span class="mono">06</span></div>
+        <div class="cell ai">Drafts test variants of the hooks and first frames<span class="tools"><span class="tool">Claude</span><span class="tool">Veo</span><span class="tool">Kling</span></span></div>
+        <div class="cell auto">Schedules posts and tags every asset with territory, audience and format<span class="tools"><span class="tool">n8n → Airtable</span></span></div>
+        <div class="cell human"><b>Social lead</b> signs off each post. Community replies stay human</div>
+      </div>
+      <div class="stage" style="grid-column:8">
+        <div class="st">Learning <span class="mono">07</span></div>
+        <div class="cell ai">Finds patterns across results and writes a learning memo<span class="tools"><span class="tool">Claude</span></span></div>
+        <div class="cell auto">Weekly dashboard. Learnings are written back into the knowledge layer<span class="tools"><span class="tool">n8n → Notion</span></span></div>
+        <div class="cell human gate"><b>Strategist</b> decides what changes in the strategy</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04 LAYERS ================= -->
+<section class="group">
+  <span class="tab">Three layers</span>
+  <div class="ghead">
+    <h2>What changes inside each discipline</h2>
+  </div>
+  <div class="layers">
+    <div class="layer">
+      <h3>Strategy</h3>
+      <p class="q">How could AI give strategists more to think with?</p>
+      <div class="flow">
+        <div class="ft">Market intelligence</div>
+        <div class="row"><span class="k">Input</span><span>Competitor sites, RED notes, reviews, reports</span></div>
+        <div class="row ai"><span class="k">AI</span><span>Groups claims and visual codes into territories</span></div>
+        <div class="row hu"><span class="k">Human</span><span>Checks the sources and names the white space</span></div>
+        <div class="row out"><span class="k">Output</span><span>Competitor territory map</span></div>
+      </div>
+      <div class="flow">
+        <div class="ft">Tension finder</div>
+        <div class="row"><span class="k">Input</span><span>Audience talk, interviews, cultural signals</span></div>
+        <div class="row ai"><span class="k">AI</span><span>Surfaces gaps between what people say and do</span></div>
+        <div class="row hu"><span class="k">Human</span><span>Picks the one tension worth owning</span></div>
+        <div class="row out"><span class="k">Output</span><span>Tension map and positioning hypotheses</span></div>
+      </div>
+    </div>
+    <div class="layer">
+      <h3>Marketing</h3>
+      <p class="q">How could one strategy become an adaptive system?</p>
+      <div class="flow">
+        <div class="ft">Idea → campaign system</div>
+        <div class="row"><span class="k">Input</span><span>Approved positioning and brand codes</span></div>
+        <div class="row ai"><span class="k">AI</span><span>Audience × platform × language matrix and copy directions</span></div>
+        <div class="row hu"><span class="k">Human</span><span>CD selects. Native writers rewrite, not translate</span></div>
+        <div class="row out"><span class="k">Output</span><span>Campaign system and calendar</span></div>
+      </div>
+      <div class="flow">
+        <div class="ft">Performance → strategy</div>
+        <div class="row"><span class="k">Input</span><span>Platform data, comments, search queries</span></div>
+        <div class="row ai"><span class="k">AI</span><span>Finds patterns by territory, audience and format</span></div>
+        <div class="row hu"><span class="k">Human</span><span>Decides what the pattern means</span></div>
+        <div class="row out"><span class="k">Output</span><span>Learning memo that goes back into strategy</span></div>
+      </div>
+    </div>
+    <div class="layer">
+      <h3>Design</h3>
+      <p class="q">What happens when designers get an exploration layer?</p>
+      <div class="flow">
+        <div class="ft">Territory exploration</div>
+        <div class="row"><span class="k">Input</span><span>Positioning, brand codes, references</span></div>
+        <div class="row ai"><span class="k">AI</span><span>Wide exploration of image, type, material and composition</span></div>
+        <div class="row hu"><span class="k">Human</span><span>Curates, rejects, combines and sets the rules</span></div>
+        <div class="row out"><span class="k">Output</span><span>2–3 visual territories</span></div>
+      </div>
+      <div class="flow">
+        <div class="ft">Production adaptation</div>
+        <div class="row"><span class="k">Input</span><span>Approved master layouts</span></div>
+        <div class="row ai"><span class="k">AI + auto</span><span>Resizes, makes format variants and mockups, checks the codes</span></div>
+        <div class="row hu"><span class="k">Human</span><span>Designer QA before anything ships</span></div>
+        <div class="row out"><span class="k">Output</span><span>Production-ready asset set</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 05 IN PRACTICE ================= -->
+<section class="group">
+  <span class="tab">In practice</span>
+  <div class="ghead">
+    <h2>One brand through the system</h2>
+  </div>
+
+  <div class="steps">
+    <!-- 1 -->
+    <div class="step">
+      <div class="rail"><span class="num">01</span></div>
+      <div class="out">
+        <span class="lbl">Brief</span>
+        <h3>From a founder deck to a structured brief</h3>
+        <p class="in">In: a 30-page founder deck, prototype photos, material samples.</p>
+        <dl class="kv">
+          <dt>Product</dt><dd>Modular system built from structural frames, function modules and patented joints</dd>
+          <dt>Audience</dt><dd>Creative professionals aged 30–50, international, gender-neutral</dd>
+          <dt>Materials</dt><dd>Steel, mid-century wood, recycled resin, shibori marquetry</dd>
+          <dt>Ambition</dt><dd>Stocked by global concept stores. Online configurator planned</dd>
+        </dl>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="step">
+      <div class="rail"><span class="num">02</span></div>
+      <div class="out">
+        <span class="lbl">Intelligence</span>
+        <h3>A competitor territory map</h3>
+        <p class="in">In: modular furniture brands, concept store editorials, RED notes on home studios and listening setups.</p>
+        <svg class="map" viewBox="0 0 520 300" role="img" aria-label="Territory map: engineered to expressive on the x axis, permanent to changeable on the y axis. The expressive and changeable corner is empty.">
+          <line class="grid" x1="260" y1="20" x2="260" y2="270"/>
+          <line class="grid" x1="40" y1="145" x2="500" y2="145"/>
+          <line class="ax" x1="40" y1="270" x2="500" y2="270"/>
+          <line class="ax" x1="40" y1="20" x2="40" y2="270"/>
+          <text class="t" x="44" y="288">ENGINEERED</text>
+          <text class="t" x="420" y="288">EXPRESSIVE</text>
+          <text class="t" x="46" y="32">CHANGEABLE</text>
+          <text class="t" x="46" y="262">PERMANENT</text>
+          <rect class="b" x="80" y="195" width="118" height="26" rx="4"/><text class="bt" x="90" y="212">Swiss steel system</text>
+          <rect class="b" x="124" y="228" width="104" height="26" rx="4"/><text class="bt" x="134" y="245">"Buy once" shelf</text>
+          <rect class="b" x="70" y="62" width="150" height="26" rx="4"/><text class="bt" x="80" y="79">Online configurator</text>
+          <rect class="b" x="300" y="210" width="150" height="26" rx="4"/><text class="bt" x="310" y="227">Collectible design</text>
+          <rect class="ws" x="290" y="40" width="190" height="80" rx="6"/>
+          <text class="wst" x="302" y="70">WHITE SPACE?</text>
+          <text class="wst" x="302" y="90">expressive + changeable</text>
+        </svg>
+        <p class="illus">Illustrative map · competitor types, not verified positions</p>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="step">
+      <div class="rail"><span class="num">03</span></div>
+      <div class="out">
+        <span class="lbl">Insight → positioning</span>
+        <h3>From six AI tensions to one idea</h3>
+        <p class="in">AI drafted six tensions from the brief and the intelligence map. One was chosen, because it is the only one the product itself resolves.</p>
+        <ol class="tens">
+          <li class="pick">Creative lives change every few years. Their furniture is built to stay the same.</li>
+          <li>They collect objects to express themselves, then store them in furniture designed to disappear.</li>
+          <li>Their decks, cameras and records are their most personal things, yet they live in boxes and flight cases.</li>
+          <li>They move between cities, but good furniture is too heavy and too final to move.</li>
+          <li>They want pieces that feel one of a kind, but modular systems read as office furniture.</li>
+          <li>They care about materials and craft, but buy online from renders they can't touch.</li>
+        </ol>
+        <dl class="kv">
+          <dt>AI draft</dt><dd class="strike">Modular furniture for creative lifestyles</dd>
+          <dt>Final</dt><dd class="final">Built to be rebuilt.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="step">
+      <div class="rail"><span class="num">04</span></div>
+      <div class="out">
+        <span class="lbl">Campaign system</span>
+        <h3>One system, many setups</h3>
+        <p class="in">The same parts, rebuilt for three creative lives. The AI expanded the idea into a matrix, and automation turned each cell into an asset brief in EN / 繁中 / 简中.</p>
+        <div class="tbl-scroll">
+          <table class="matrix">
+            <thead><tr><th>Setup</th><th>RED</th><th>Instagram</th><th>WeChat</th></tr></thead>
+            <tbody>
+              <tr><td>DJ booth</td><td>"My booth build" guide</td><td>Rebuild timelapse</td><td>Configurator preset</td></tr>
+              <tr><td>Listening wall</td><td>Vinyl + amp setup guide</td><td>Night session reel</td><td>Configurator preset</td></tr>
+              <tr><td>Collector's display</td><td>Shelf-styling guide</td><td>Before / after</td><td>Configurator preset</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="step">
+      <div class="rail"><span class="num">05</span></div>
+      <div class="out">
+        <span class="lbl">Visual territories</span>
+        <h3>Five film sets from the brief, reduced to three territories</h3>
+        <div class="terr">
+          <div class="node ai"><div class="nh"><span class="dot"></span>A · Exposed structure</div><div class="nb">
+            <img class="shot tall" src="terr-exposed.jpg" alt="Aluminium frame shelf and low unit in a bare Parisian apartment with herringbone floor">
+            <div class="pal"><i style="background:#8E959C"></i><i style="background:#2B2E33"></i><i style="background:#D9D6CF"></i><i style="background:#7A4B2A"></i></div>
+            <span>Parisian apartment. Bare frame against old plaster, raw daylight, the joint on show</span></div></div>
+          <div class="node ai"><div class="nh"><span class="dot"></span>B · Warm modern</div><div class="nb">
+            <img class="shot" src="terr-warm-1.jpg" alt="Modular aluminium wardrobes, shelf and DJ table in a wood-panelled room">
+            <img class="shot" src="terr-warm-2.jpg" alt="DJ setup on a modular table in a corrugated-walled loft">
+            <div class="pal"><i style="background:#9A6A43"></i><i style="background:#E7D8C1"></i><i style="background:#8B8577"></i><i style="background:#C9C6BF"></i></div>
+            <span>Oak panels and corrugated walls. Low warm light, aluminium against wood</span></div></div>
+          <div class="node ai"><div class="nh"><span class="dot"></span>C · Listening room</div><div class="nb">
+            <img class="shot tall" src="listening.gif" alt="Midjourney exploration: a windowless listening room with a light-box ceiling, curtain walls, olive carpet and the modular DJ console, wardrobes and shelving" loading="lazy">
+            <div class="pal"><i style="background:#1E2233"></i><i style="background:#4A3B5C"></i><i style="background:#C9A46A"></i><i style="background:#0F1015"></i></div>
+            <span>Audiophile or DJ home. Dusk, low light, records</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="step">
+      <div class="rail"><span class="num">06</span></div>
+      <div class="out">
+        <span class="lbl">Applications</span>
+        <h3>The system in use</h3>
+        <figure class="cfg">
+          <div class="cfg-frame"><iframe src="configurator/index.html" title="Configurator prototype" loading="lazy"></iframe></div>
+          <figcaption><span class="lbl">Configurator · working prototype · try it</span><span>Pick a size, fill each level with organs, choose a skin, or start from a catalogue item (A–D). The 3D model, parts list, weight and assembly steps update together. Drag to rotate.</span></figcaption>
+        </figure>
+        <div class="apps">
+          <div class="app red">
+            <div class="slides">
+              <div class="slide"><img src="app-dj-loft.jpg" alt="DJ decks on a long low frame shelf full of records in the corner of a brick loft" loading="lazy"><span class="ov"><b>如何在loft里搭一个DJ角</b>How I built a DJ corner</span><span class="pg">1/4</span></div>
+              <div class="slide"><img src="app-listening-wall.jpg" alt="Long low frame shelf of records with a speaker at each end behind a cream floor sofa" loading="lazy"><span class="ov"><b>一面黑胶墙</b>Records low, speakers at each end</span><span class="pg">2/4</span></div>
+              <div class="slide"><img src="app-plant-loft.jpg" alt="White frame shelf with records and an amplifier among plants in a sunlit loft" loading="lazy"><span class="ov"><b>同一套框架，换个家</b>Same frame, a living room with plants</span><span class="pg">3/4</span></div>
+              <div class="slide"><img src="app-desert.jpg" alt="Low frame console with walnut shelves, turntables, two speakers and records under a concrete canopy facing desert mountains" loading="lazy"><span class="ov"><b>一张唱片台，面向群山</b>A record console with a view</span><span class="pg">4/4</span></div>
+            </div>
+            <span>RED guide carousel: a DJ corner, a listening wall, a living-room shelf and an outdoor record console, all built from the same frame</span></div>
+          
+          <div class="app"><div class="frame pack"><img src="pack-1.jpg" alt="Stack of branded kraft shipping boxes in a room corner" loading="lazy"><img src="pack-2.jpg" alt="Open box with aluminium frame parts under halftone-patterned wrapping paper" loading="lazy"><img src="pack-3.jpg" alt="Open boxes with patterned wrapping and aluminium profiles in low sun" loading="lazy"></div><span>Packaging</span></div>
+          <div class="app"><div class="frame card"><img src="app-display-card.jpg" alt="A printed card on a steel stand showing an isometric line drawing of a DJ console, speakers and a shelving unit with rust-orange joints, in front of a walnut and aluminium sideboard in warm afternoon light" loading="lazy"></div><span>In-store display card: a line drawing of the system (DJ console, speakers, shelf) on a steel stand in front of the sideboard it describes</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= 06 HUMAN / AI ================= -->
+<section class="group">
+  <span class="tab">Human / AI</span>
+  <div class="legend" style="margin-bottom:12px">
+    <span><i class="m ai"></i>AI does the work</span>
+    <span><i class="m full"></i>Human leads</span>
+    <span><i class="m half"></i>Supports / reviews</span>
+  </div>
+  <div class="tbl-scroll">
+    <table class="resp">
+      <thead><tr><th>Task</th><th>AI proposes</th><th>Automation moves</th><th>Human decides</th><th>Human owns</th></tr></thead>
+      <tbody>
+        <tr><td>Research &amp; monitoring</td><td class="c"><i class="m ai"></i></td><td class="c"><i class="m ai"></i></td><td class="c"><i class="m half"></i></td><td class="c"><i class="m none"></i></td></tr>
+        <tr><td>Pattern detection</td><td class="c"><i class="m ai"></i></td><td class="c"><i class="m none"></i></td><td class="c"><i class="m full"></i></td><td class="c"><i class="m none"></i></td></tr>
+        <tr><td>Insight &amp; positioning</td><td class="c"><i class="m half"></i></td><td class="c"><i class="m none"></i></td><td class="c"><i class="m full"></i></td><td class="c"><i class="m full"></i></td></tr>
+        <tr><td>Campaign idea</td><td class="c"><i class="m half"></i></td><td class="c"><i class="m none"></i></td><td class="c"><i class="m full"></i></td><td class="c"><i class="m full"></i></td></tr>
+        <tr><td>Copy &amp; localisation</td><td class="c"><i class="m ai"></i></td><td class="c"><i class="m ai"></i></td><td class="c"><i class="m full"></i></td><td class="c"><i class="m none"></i></td></tr>
+        <tr><td>Visual exploration</td><td class="c"><i class="m ai"></i></td><td class="c"><i class="m none"></i></td><td class="c"><i class="m full"></i></td><td class="c"><i class="m none"></i></td></tr>
+        <tr><td>Art direction</td><td class="c"><i class="m half"></i></td><td class="c"><i class="m none"></i></td><td class="c"><i class="m full"></i></td><td class="c"><i class="m full"></i></td></tr>
+        <tr><td>Format adaptation</td><td class="c"><i class="m ai"></i></td><td class="c"><i class="m ai"></i></td><td class="c"><i class="m half"></i></td><td class="c"><i class="m none"></i></td></tr>
+        <tr><td>Client relationship &amp; accountability</td><td class="c"><i class="m none"></i></td><td class="c"><i class="m none"></i></td><td class="c"><i class="m full"></i></td><td class="c"><i class="m full"></i></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+
+</div>
+
+<script>
+(function(){
+  var c=document.querySelector('.cur');if(!c||matchMedia('(pointer:coarse)').matches)return;
+  addEventListener('mousemove',function(e){c.style.transform='translate('+e.clientX+'px,'+e.clientY+'px)';c.classList.add('on');
+    c.classList.toggle('big',!!(e.target.closest&&e.target.closest('a,button,summary,.slide')));},{passive:true});
+  document.addEventListener('mouseleave',function(){c.classList.remove('on')});
+  var f=document.querySelector('.cfg-frame');if(f){f.addEventListener('mouseenter',function(){c.classList.remove('on')});}
+})();
+(function(){
+  var ba=document.getElementById('ba');if(!ba)return;
+  var btns=ba.querySelectorAll('.toggle button');
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){
+      var after=b.dataset.mode==='after';
+      ba.classList.toggle('after',after);
+      btns.forEach(function(x){x.setAttribute('aria-selected',String(x===b));});
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
