@@ -8,6 +8,7 @@
 <title>Creative Operating Layer — Alina Shults</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 :root{
@@ -20,6 +21,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+html,body{margin:0}
 body{
   background-color:var(--bg);
   color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.5;
@@ -270,16 +272,56 @@ footer{font:11px var(--mono);color:var(--muted);letter-spacing:.03em;border-top:
 .back{position:relative;z-index:2;display:inline-block;max-width:1140px;margin:0 auto 28px;font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-decoration:none}
 .back:hover{color:var(--ink)}
 .backwrap{max-width:1140px;margin:0 auto}
+
+/* ---- site header (same as the rest of alinavivenshults.xyz) ---- */
+.site-header{--paper:#F1F3FF;--sh-ink:#15140F;--sh-ink2:#6F6B62;--rule:#D9DBE6;--sh-sans:"ABC Diatype","Geist","Hanken Grotesk",system-ui,-apple-system,sans-serif;--sh-mono:"ABC Diatype Mono","Geist Mono","Space Mono",ui-monospace,monospace;--pad:clamp(1.25rem,5vw,6rem);
+  position:sticky;top:0;z-index:40;background:var(--paper);color:var(--sh-ink);border-bottom:1px solid var(--rule);margin:-40px -20px 40px;font-family:var(--sh-sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+@media (prefers-color-scheme:dark){:root:not([data-theme]) .site-header{--paper:#121110;--sh-ink:#F1EFE8;--sh-ink2:#8D887D;--rule:#2C2A26}}
+:root[data-theme="dark"] .site-header{--paper:#121110;--sh-ink:#F1EFE8;--sh-ink2:#8D887D;--rule:#2C2A26}
+.site-header .sh-wrap{max-width:1280px;margin-inline:auto;padding-inline:var(--pad)}
+.site-header__row{position:relative;display:flex;align-items:center;justify-content:space-between;gap:1rem;height:64px}
+.site-header a{color:inherit;text-decoration:none}
+.site-header :where(button){font:inherit;color:inherit;background:none;border:0;cursor:inherit}
+.wordmark{font-size:1.05rem;font-weight:600;letter-spacing:-.02em}
+.nav{display:flex;align-items:center;gap:1.4rem}
+.nav a{font-family:var(--sh-mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.04em;color:var(--sh-ink2);padding:4px 0;border-bottom:1.5px solid transparent;transition:color .18s}
+.nav a:hover{color:var(--sh-ink)}
+.nav a[aria-current="page"]{color:var(--sh-ink);border-bottom-color:var(--sh-ink)}
+.theme-toggle{font-family:var(--sh-mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--sh-ink2);display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule)!important;padding:6px 10px;border-radius:4px}
+.theme-toggle:hover{color:var(--sh-ink)}
+.nav-toggle{display:none}
+.skip-link{position:absolute;left:8px;top:-48px;background:#15140F;color:#F1F3FF;padding:8px 14px;border-radius:4px;font:.8rem var(--mono);z-index:50;text-decoration:none}
+.skip-link:focus{top:8px}
+.site-header :focus-visible{outline:2px solid var(--sh-ink);outline-offset:3px;border-radius:2px}
+@media (max-width:760px){
+  .site-header{margin:-40px -16px 32px}
+  .nav-toggle{display:inline-flex;font-family:var(--sh-mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;border:1px solid var(--rule)!important;padding:6px 10px;border-radius:4px}
+  .nav{position:absolute;left:0;right:0;top:64px;flex-direction:column;align-items:flex-start;gap:0;background:var(--paper);border-bottom:1px solid var(--rule);padding:.5rem var(--pad) 1rem;display:none}
+  .nav.is-open{display:flex}
+  .nav a{padding:12px 0;font-size:.85rem;width:100%}
+}
 </style>
 </head>
 <body>
 
 
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="sh-wrap site-header__row">
+    <a class="wordmark" href="../../index.html" aria-label="Alina Shults — home">Alina Shults</a>
+    <button class="nav-toggle" type="button" data-nav-toggle aria-controls="nav" aria-expanded="false">Menu</button>
+    <nav class="nav" id="nav" aria-label="Primary">
+      <a href="../../work.html" aria-current="page">Work</a>
+      <a href="../../research.html">Research</a>
+      <a href="../../about.html">About</a>
+      <a href="../../contact.html">Contact</a>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false"><span data-theme-label>Dark</span></button>
+    </nav>
+  </div>
+</header>
 <div class="bgfx" aria-hidden="true"></div>
 <div class="cur" aria-hidden="true"></div>
-<div class="backwrap"><a class="back" href="../../work.html">← Alina Shults · Work</a>
-</div>
-<div class="wrap">
+<div class="wrap" id="main">
 
 <!-- ================= 01 QUESTION ================= -->
 <header class="title">
@@ -614,5 +656,21 @@ footer{font:11px var(--mono);color:var(--muted);letter-spacing:.03em;border-top:
 })();
 </script>
 
+<script>
+(function(){
+  var root=document.documentElement,stored=null;
+  try{stored=localStorage.getItem("theme")}catch(e){}
+  if(stored==="light"||stored==="dark")root.setAttribute("data-theme",stored);
+  function cur(){var a=root.getAttribute("data-theme");if(a)return a;return matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}
+  function sync(){var t=cur();document.querySelectorAll("[data-theme-toggle]").forEach(function(b){b.setAttribute("aria-pressed",t==="dark"?"true":"false");var l=b.querySelector("[data-theme-label]");if(l)l.textContent=t==="dark"?"Light":"Dark"})}
+  document.addEventListener("click",function(e){
+    var tt=e.target.closest&&e.target.closest("[data-theme-toggle]");
+    if(tt){e.preventDefault();var t=cur()==="dark"?"light":"dark";root.setAttribute("data-theme",t);try{localStorage.setItem("theme",t)}catch(e){}sync();return}
+    var nt=e.target.closest&&e.target.closest("[data-nav-toggle]");
+    if(nt){var n=document.getElementById("nav");if(n){var o=n.classList.toggle("is-open");nt.setAttribute("aria-expanded",o?"true":"false")}}
+  });
+  sync();
+})();
+</script>
 </body>
 </html>
